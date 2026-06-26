@@ -863,6 +863,141 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* ===== CREDIT CARD PAGE ===== */
+  .cc-wrapper { max-width: 480px; margin: 0 auto; }
+
+  /* Card Scene */
+  .cc-scene {
+    perspective: 1000px;
+    margin-bottom: 2rem;
+    height: 230px;
+  }
+  .cc-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .cc-inner.flipped { transform: rotateY(180deg); }
+  .cc-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07);
+    overflow: hidden;
+  }
+
+  /* Front */
+  .cc-front {
+    padding: 1.8rem;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: linear-gradient(135deg, #1a1035 0%, #2d1b69 50%, #1a1035 100%);
+  }
+  .cc-front .cc-deco1 {
+    position:absolute; width:280px; height:280px; border-radius:50%;
+    background:radial-gradient(circle,rgba(180,80,255,0.35) 0%,transparent 70%);
+    top:-60px; right:-60px; pointer-events:none;
+  }
+  .cc-front .cc-deco2 {
+    position:absolute; width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle,rgba(100,60,200,0.25) 0%,transparent 70%);
+    bottom:-40px; left:-40px; pointer-events:none;
+  }
+  .cc-header { display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
+  .cc-brand { color:#fff; font-weight:700; font-size:16px; letter-spacing:1px; }
+  .cc-mc { display:flex; }
+  .cc-mc-circle { width:32px; height:32px; border-radius:50%; opacity:0.9; }
+  .cc-mc-red  { background:#eb001b; }
+  .cc-mc-gold { background:#f79e1b; margin-left:-13px; }
+  .cc-visa-logo { color:#fff; font-weight:900; font-size:22px; font-style:italic; letter-spacing:2px; }
+
+  .cc-body { position:relative; z-index:1; }
+  .cc-chip {
+    width: 44px; height: 34px; border-radius: 6px;
+    background: linear-gradient(135deg, #c8a84b, #e8c46a, #c8a84b);
+    margin-bottom: 14px;
+    position: relative; overflow: hidden;
+  }
+  .cc-chip::after {
+    content:''; position:absolute; inset:4px; border-radius:3px;
+    border:1px solid rgba(0,0,0,0.2);
+    background: linear-gradient(135deg,rgba(255,255,255,0.3),transparent);
+  }
+  .cc-number-display {
+    color:#fff; font-size:20px; font-family:'Courier New',monospace;
+    letter-spacing:3px; font-weight:600; margin-bottom:1.2rem; min-height:30px;
+  }
+  .cc-footer-row { display:flex; justify-content:space-between; align-items:flex-end; }
+  .cc-lbl { color:rgba(255,255,255,0.5); font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+  .cc-val { color:#fff; font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .cc-network-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    background:rgba(255,255,255,0.1); border-radius:20px; padding:4px 10px;
+    font-size:11px; color:rgba(255,255,255,0.8); font-weight:700;
+  }
+
+  /* Back */
+  .cc-back {
+    transform: rotateY(180deg);
+    display: flex; flex-direction: column; justify-content: center;
+    background: linear-gradient(135deg, #1a1035 0%, #2d1b69 50%, #1a1035 100%);
+  }
+  .cc-stripe { background:#111; height:52px; margin-bottom:1.5rem; }
+  .cc-cvv-section { padding: 0 1.8rem; }
+  .cc-cvv-label { color:rgba(255,255,255,0.5); font-size:11px; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .cc-cvv-box {
+    background:#fff; border-radius:6px; padding:10px 16px;
+    font-family:'Courier New',monospace; font-size:18px; letter-spacing:4px;
+    color:#1a1035; font-weight:700; text-align:right;
+  }
+  .cc-sig { background:repeating-linear-gradient(90deg,#e8e8e8 0,#e8e8e8 4px,white 4px,white 8px); height:36px; margin:0 1.8rem 0.8rem; border-radius:4px; }
+
+  /* Form */
+  .cc-form-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 2rem;
+  }
+  .cc-field { margin-bottom: 1.2rem; }
+  .cc-field label.lbl { font-size:12px; color:#64748b; display:block; margin-bottom:6px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; }
+  .cc-expiry-cvv-row { display:flex; gap:1rem; margin-bottom:1.2rem; }
+  .cc-expiry-group { flex:2; }
+  .cc-cvv-group    { flex:1; }
+  .cc-expiry-selects { display:flex; gap:0.5rem; }
+  .cc-expiry-selects select { flex:1; cursor:pointer; }
+  .cc-network-selector { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .cc-net-btn {
+    padding:8px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.03); color:#64748b; cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:700;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .cc-net-btn:hover { color:#e2e8f0; border-color:rgba(255,255,255,0.2); }
+  .cc-net-btn.selected { border-color:#a855f7; background:rgba(168,85,247,0.15); color:#a855f7; box-shadow:0 0 20px rgba(168,85,247,0.3); }
+
+  /* Saved Cards */
+  .saved-cards-grid { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+  .saved-card-item {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px;
+    transition:all 0.3s; cursor:pointer; animation:billItemIn 0.4s both;
+  }
+  .saved-card-item:hover { border-color:rgba(168,85,247,0.3); background:rgba(168,85,247,0.06); transform:translateX(-4px); }
+  .saved-card-mini {
+    width:54px; height:36px; border-radius:8px; flex-shrink:0;
+    background:linear-gradient(135deg,#1a1035,#2d1b69);
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);
+  }
+  .cc-stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+  .cc-stat-mini {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px; padding:14px; text-align:center;
+  }
+  .cc-stat-mini .val { font-size:20px; font-weight:900; margin-bottom:3px; }
+  .cc-stat-mini .lbl2 { font-size:11px; color:#64748b; }
 </style>
 </head>
 <body>
@@ -913,6 +1048,11 @@
     </button>
     <button class="snav-btn" onclick="showTab('reports')" data-tab="reports">
       <span class="snav-icon">📊</span><span class="snav-label">التقارير</span>
+      <span class="snav-arrow">›</span>
+    </button>
+    <div class="snav-divider"></div>
+    <button class="snav-btn" onclick="showTab('credit-card')" data-tab="credit-card">
+      <span class="snav-icon">💳</span><span class="snav-label">بطاقات الدفع</span>
       <span class="snav-arrow">›</span>
     </button>
     <div class="snav-divider"></div>
@@ -1263,6 +1403,126 @@
   </div>
 </div>
 
+<!-- ===================== CREDIT CARD ===================== -->
+<div id="page-credit-card" class="page">
+  <h2 class="page-title">💳 بطاقات الدفع</h2>
+
+  <!-- Stats -->
+  <div class="cc-stats-grid" id="cc-stats-grid">
+    <div class="cc-stat-mini"><div class="val" style="color:#a855f7" id="cc-count">0</div><div class="lbl2">بطاقة محفوظة</div></div>
+    <div class="cc-stat-mini"><div class="val" style="color:#60a5fa" id="cc-networks">—</div><div class="lbl2">الشبكات</div></div>
+    <div class="cc-stat-mini"><div class="val" style="color:#22c55e" id="cc-expiring">0</div><div class="lbl2">تنتهي قريباً</div></div>
+  </div>
+
+  <div class="grid-2" style="gap:24px;align-items:start">
+
+    <!-- Add / Edit Card Form -->
+    <div>
+      <div class="panel">
+        <h3 class="section-title" style="color:#a855f7;margin-bottom:20px" id="cc-form-title">➕ إضافة بطاقة جديدة</h3>
+
+        <!-- Card Preview -->
+        <div class="cc-scene">
+          <div class="cc-inner" id="ccInner">
+            <div class="cc-face cc-front">
+              <div class="cc-deco1"></div>
+              <div class="cc-deco2"></div>
+              <div class="cc-header">
+                <span class="cc-brand" id="ccBankDisplay">اسم البنك</span>
+                <div id="ccNetworkLogo">
+                  <div class="cc-mc"><div class="cc-mc-circle cc-mc-red"></div><div class="cc-mc-circle cc-mc-gold"></div></div>
+                </div>
+              </div>
+              <div class="cc-body">
+                <div class="cc-chip"></div>
+                <div class="cc-number-display" id="ccNumberDisplay">•••• •••• •••• ••••</div>
+                <div class="cc-footer-row">
+                  <div>
+                    <div class="cc-lbl">حامل البطاقة</div>
+                    <div class="cc-val" id="ccHolderDisplay">الاسم الكامل</div>
+                  </div>
+                  <div style="text-align:left">
+                    <div class="cc-lbl">الصلاحية</div>
+                    <div class="cc-val" id="ccExpiryDisplay">MM/YY</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="cc-face cc-back">
+              <div class="cc-stripe"></div>
+              <div class="cc-sig"></div>
+              <div class="cc-cvv-section">
+                <div class="cc-cvv-label">CVV</div>
+                <div class="cc-cvv-box" id="ccCvvDisplay">•••</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network Selector -->
+        <div class="cc-field">
+          <label class="lbl">شبكة الدفع</label>
+          <div class="cc-network-selector" id="ccNetworkSelector">
+            <button class="cc-net-btn selected" data-net="mastercard" onclick="selectNetwork('mastercard',this)">💳 Mastercard</button>
+            <button class="cc-net-btn" data-net="visa" onclick="selectNetwork('visa',this)">💙 Visa</button>
+            <button class="cc-net-btn" data-net="mada" onclick="selectNetwork('mada',this)">🇸🇦 مدى</button>
+            <button class="cc-net-btn" data-net="amex" onclick="selectNetwork('amex',this)">🟦 Amex</button>
+          </div>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="cc-field">
+          <label class="lbl">اسم البنك / المصدر</label>
+          <input id="ccBank" type="text" placeholder="مثال: البنك الأهلي، Riyad Bank" oninput="ccUpdateBank()" />
+        </div>
+        <div class="cc-field">
+          <label class="lbl">رقم البطاقة</label>
+          <input id="ccNumber" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19" oninput="ccFormatNumber()" />
+        </div>
+        <div class="cc-field">
+          <label class="lbl">اسم حامل البطاقة</label>
+          <input id="ccHolder" type="text" placeholder="الاسم كما هو على البطاقة" oninput="ccUpdateHolder()" />
+        </div>
+        <div class="cc-expiry-cvv-row">
+          <div class="cc-expiry-group">
+            <label class="lbl">تاريخ الانتهاء</label>
+            <div class="cc-expiry-selects">
+              <select id="ccMonth" onchange="ccUpdateExpiry()"></select>
+              <select id="ccYear" onchange="ccUpdateExpiry()"></select>
+            </div>
+          </div>
+          <div class="cc-cvv-group">
+            <label class="lbl">CVV</label>
+            <input id="ccCvv" type="text" inputmode="numeric" placeholder="123" maxlength="4"
+              onfocus="document.getElementById('ccInner').classList.add('flipped')"
+              onblur="document.getElementById('ccInner').classList.remove('flipped')"
+              oninput="ccUpdateCvv()" />
+          </div>
+        </div>
+        <div class="cc-field">
+          <label class="lbl">ملاحظة (اختياري)</label>
+          <input id="ccNote" type="text" placeholder="مثال: بطاقة العمل، للتسوق الإلكتروني" />
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-primary" style="flex:1;padding:14px;font-size:15px" onclick="saveCard()" id="ccSaveBtn">💾 حفظ البطاقة</button>
+          <button class="btn btn-ghost" onclick="resetCardForm()" id="ccCancelBtn" style="display:none;padding:14px">✕ إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Cards -->
+    <div>
+      <div class="panel">
+        <h3 class="section-title" style="color:#60a5fa;margin-bottom:16px">🗂️ البطاقات المحفوظة</h3>
+        <div id="cc-saved-list">
+          <div class="empty-state">لا توجد بطاقات محفوظة بعد<br><span style="font-size:13px;color:#475569">أضف أول بطاقة من النموذج</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <script>
@@ -1374,6 +1634,7 @@ function showTab(name) {
   if(name==="invoices")      renderInvoices();
   if(name==="reports")       renderReports();
   if(name==="settings")      loadSettings();
+  if(name==="credit-card")   initCreditCard();
   closeSidebar();
   window.scrollTo(0,0);
 }
@@ -1992,6 +2253,213 @@ function clearAllData() {
   settings={companyName:"إدارة فواتير المنزل",currency:"ر.س",taxRate:15,taxEnabled:false};
   save(); loadSettings(); renderDashboard();
   notify("تم مسح جميع البيانات 🗑️","error");
+}
+
+// ===================== CREDIT CARDS =====================
+let cards = JSON.parse(localStorage.getItem("hb_cards") || "[]");
+let ccNetwork = "mastercard";
+let editingCardId = null;
+
+const CC_NETWORKS = {
+  mastercard: { label:"Mastercard", logo:'<div class="cc-mc"><div class="cc-mc-circle cc-mc-red"></div><div class="cc-mc-circle cc-mc-gold"></div></div>', icon:"💳", color:"#f59e0b" },
+  visa:       { label:"Visa",       logo:'<span class="cc-visa-logo">VISA</span>', icon:"💙", color:"#1a56db" },
+  mada:       { label:"مدى",        logo:'<span style="color:#fff;font-weight:900;font-size:14px;letter-spacing:1px">mada</span>', icon:"🇸🇦", color:"#00843d" },
+  amex:       { label:"Amex",       logo:'<span style="color:#fff;font-weight:900;font-size:12px;letter-spacing:1px">AMEX</span>', icon:"🟦", color:"#2563eb" },
+};
+
+function initCreditCard() {
+  // Populate selects
+  const ms = document.getElementById("ccMonth");
+  const ys = document.getElementById("ccYear");
+  if(!ms.options.length) {
+    for(let m=1;m<=12;m++) ms.innerHTML+=`<option value="${String(m).padStart(2,'0')}">${String(m).padStart(2,'0')}</option>`;
+    const curY=new Date().getFullYear();
+    for(let y=curY;y<=curY+12;y++) ys.innerHTML+=`<option value="${y}">${y}</option>`;
+    ccUpdateExpiry();
+  }
+  renderSavedCards();
+  updateCcStats();
+}
+
+function selectNetwork(net, el) {
+  ccNetwork = net;
+  document.querySelectorAll(".cc-net-btn").forEach(b=>b.classList.remove("selected"));
+  el.classList.add("selected");
+  document.getElementById("ccNetworkLogo").innerHTML = CC_NETWORKS[net].logo;
+  ccUpdateExpiry();
+}
+
+function ccFormatNumber() {
+  const inp = document.getElementById("ccNumber");
+  const digits = inp.value.replace(/\D/g,'').slice(0,16);
+  inp.value = digits.replace(/(.{4})/g,'$1 ').trim();
+  // Display masked
+  const d=digits;
+  let disp='';
+  for(let i=0;i<16;i++){
+    if(i>0&&i%4===0) disp+=' ';
+    if(d[i]) disp+= (i<4||i>=12)?d[i]:'•';
+    else disp+='•';
+  }
+  document.getElementById("ccNumberDisplay").textContent = disp;
+}
+
+function ccUpdateHolder() {
+  const v = document.getElementById("ccHolder").value.toUpperCase();
+  document.getElementById("ccHolder").value = v;
+  document.getElementById("ccHolderDisplay").textContent = v || "الاسم الكامل";
+}
+
+function ccUpdateBank() {
+  document.getElementById("ccBankDisplay").textContent = document.getElementById("ccBank").value || "اسم البنك";
+}
+
+function ccUpdateExpiry() {
+  const m = document.getElementById("ccMonth").value;
+  const y = (document.getElementById("ccYear").value||"2025").slice(2);
+  document.getElementById("ccExpiryDisplay").textContent = `${m}/${y}`;
+}
+
+function ccUpdateCvv() {
+  const v = document.getElementById("ccCvv").value.replace(/\D/g,'');
+  document.getElementById("ccCvv").value = v;
+  document.getElementById("ccCvvDisplay").textContent = v ? '•'.repeat(v.length) : '•••';
+}
+
+function saveCard() {
+  const number = document.getElementById("ccNumber").value.replace(/\s/g,'');
+  const holder = document.getElementById("ccHolder").value.trim();
+  const bank   = document.getElementById("ccBank").value.trim();
+  const month  = document.getElementById("ccMonth").value;
+  const year   = document.getElementById("ccYear").value;
+  const cvv    = document.getElementById("ccCvv").value;
+  const note   = document.getElementById("ccNote").value.trim();
+
+  if(!number || number.length<13) { notify("الرجاء إدخال رقم بطاقة صحيح ❌","error"); return; }
+  if(!holder) { notify("الرجاء إدخال اسم حامل البطاقة ❌","error"); return; }
+
+  const cardData = {
+    id: editingCardId || uid(),
+    network: ccNetwork,
+    number, holder, bank, month, year, cvv, note,
+    addedAt: today(),
+  };
+
+  if(editingCardId) {
+    cards = cards.map(c=>c.id===editingCardId?cardData:c);
+    notify("تم تحديث البطاقة ✅");
+    editingCardId = null;
+  } else {
+    cards.unshift(cardData);
+    notify("تم حفظ البطاقة بأمان 💳");
+  }
+  localStorage.setItem("hb_cards", JSON.stringify(cards));
+  resetCardForm();
+  renderSavedCards();
+  updateCcStats();
+}
+
+function resetCardForm() {
+  editingCardId = null;
+  document.getElementById("ccNumber").value = "";
+  document.getElementById("ccHolder").value = "";
+  document.getElementById("ccBank").value   = "";
+  document.getElementById("ccCvv").value    = "";
+  document.getElementById("ccNote").value   = "";
+  document.getElementById("ccNumberDisplay").textContent = "•••• •••• •••• ••••";
+  document.getElementById("ccHolderDisplay").textContent = "الاسم الكامل";
+  document.getElementById("ccBankDisplay").textContent   = "اسم البنك";
+  document.getElementById("ccExpiryDisplay").textContent = "MM/YY";
+  document.getElementById("ccCvvDisplay").textContent    = "•••";
+  document.getElementById("ccInner").classList.remove("flipped");
+  document.getElementById("ccFormTitle")||document.getElementById("cc-form-title") &&
+    (document.getElementById("cc-form-title").textContent = "➕ إضافة بطاقة جديدة");
+  document.getElementById("ccSaveBtn").textContent = "💾 حفظ البطاقة";
+  document.getElementById("ccCancelBtn").style.display = "none";
+  selectNetwork("mastercard", document.querySelector('.cc-net-btn[data-net="mastercard"]'));
+}
+
+function editCard(id) {
+  const c = cards.find(x=>x.id===id); if(!c) return;
+  editingCardId = id;
+  selectNetwork(c.network, document.querySelector(`.cc-net-btn[data-net="${c.network}"]`));
+  const fmt4 = c.number.replace(/(.{4})/g,'$1 ').trim();
+  document.getElementById("ccNumber").value = fmt4;
+  document.getElementById("ccHolder").value = c.holder;
+  document.getElementById("ccBank").value   = c.bank||"";
+  document.getElementById("ccMonth").value  = c.month;
+  document.getElementById("ccYear").value   = c.year;
+  document.getElementById("ccCvv").value    = c.cvv||"";
+  document.getElementById("ccNote").value   = c.note||"";
+  ccUpdateHolder(); ccUpdateBank(); ccFormatNumber(); ccUpdateExpiry(); ccUpdateCvv();
+  document.getElementById("cc-form-title").textContent = "✏️ تعديل البطاقة";
+  document.getElementById("ccSaveBtn").textContent = "💾 حفظ التعديلات";
+  document.getElementById("ccCancelBtn").style.display = "block";
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteCard(id) {
+  if(!confirm("هل تريد حذف هذه البطاقة؟")) return;
+  cards = cards.filter(c=>c.id!==id);
+  localStorage.setItem("hb_cards", JSON.stringify(cards));
+  notify("تم حذف البطاقة 🗑️"); renderSavedCards(); updateCcStats();
+}
+
+function maskCardNum(num) {
+  const d = num.replace(/\D/g,'');
+  return `•••• •••• •••• ${d.slice(-4)}`;
+}
+
+function isExpiringSoon(month, year) {
+  const now = new Date();
+  const exp = new Date(parseInt(year), parseInt(month)-1, 1);
+  const diff = (exp - now) / (1000*60*60*24*30);
+  return diff >= 0 && diff <= 3;
+}
+function isExpired(month, year) {
+  const now = new Date();
+  const exp = new Date(parseInt(year), parseInt(month), 0); // last day of month
+  return exp < now;
+}
+
+function renderSavedCards() {
+  const container = document.getElementById("cc-saved-list");
+  if(!cards.length) {
+    container.innerHTML = '<div class="empty-state">لا توجد بطاقات محفوظة بعد<br><span style="font-size:13px;color:#475569">أضف أول بطاقة من النموذج</span></div>';
+    return;
+  }
+  container.innerHTML = cards.map((c,idx)=>{
+    const net = CC_NETWORKS[c.network]||CC_NETWORKS.mastercard;
+    const expired = isExpired(c.month, c.year);
+    const expiring = isExpiringSoon(c.month, c.year);
+    const statusColor = expired?"#ef4444": expiring?"#f59e0b":"#22c55e";
+    const statusText  = expired?"⚠️ منتهية": expiring?"⏰ تنتهي قريباً":"✅ سارية";
+    return `<div class="saved-card-item" style="animation-delay:${idx*0.07}s;border-right:3px solid ${net.color}">
+      <div class="saved-card-mini" style="background:linear-gradient(135deg,${net.color}44,${net.color}22)">${net.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:15px">${c.bank||net.label}</div>
+        <div style="font-size:13px;color:#94a3b8;letter-spacing:2px;font-family:'Courier New',monospace">${maskCardNum(c.number)}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">${c.holder} · ${c.month}/${c.year.slice(2)}</div>
+        ${c.note?`<div style="font-size:11px;color:#475569;margin-top:2px">📝 ${c.note}</div>`:""}
+      </div>
+      <div style="text-align:left;flex-shrink:0">
+        <div style="font-size:12px;color:${statusColor};font-weight:700;margin-bottom:6px">${statusText}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="editCard('${c.id}')" style="background:#1d4ed8;color:white">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCard('${c.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function updateCcStats() {
+  document.getElementById("cc-count").textContent = cards.length;
+  const nets = [...new Set(cards.map(c=>CC_NETWORKS[c.network]?.label||c.network))];
+  document.getElementById("cc-networks").textContent = nets.length ? nets.join("، ") : "—";
+  const expiring = cards.filter(c=>isExpiringSoon(c.month,c.year)||isExpired(c.month,c.year)).length;
+  document.getElementById("cc-expiring").textContent = expiring;
+  document.getElementById("cc-expiring").style.color = expiring>0?"#ef4444":"#22c55e";
 }
 
 // ===================== INIT =====================
