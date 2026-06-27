@@ -991,7 +991,64 @@
     display:flex; align-items:center; justify-content:center; font-size:18px;
     box-shadow:0 4px 12px rgba(0,0,0,0.4);
   }
-  .cc-stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+  /* ===== POS STYLES ===== */
+  .pos-pay-btn {
+    padding: 10px 14px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: #64748b; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); flex: 1;
+  }
+  .pos-pay-btn.active { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; box-shadow: 0 0 15px rgba(34,197,94,0.2); }
+  .pos-pay-btn:hover { color: #e2e8f0; border-color: rgba(255,255,255,0.2); }
+
+  .pos-item-row {
+    display: grid; grid-template-columns: 2.5fr 1fr 1.2fr auto;
+    gap: 4px; padding: 6px 10px; border-top: 1px solid rgba(255,255,255,0.04);
+    align-items: center;
+  }
+  .pos-item-row input { padding: 6px 8px; font-size: 13px; }
+
+  /* ===== CUSTOMER CARD ===== */
+  .customer-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+    transition: all 0.3s; animation: billItemIn 0.4s both;
+  }
+  .customer-card:hover { border-color: rgba(6,182,212,0.3); background: rgba(6,182,212,0.05); transform: translateX(-3px); }
+  .customer-avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: white;
+    box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+  }
+
+  /* ===== PRODUCT CARD ===== */
+  .product-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+    transition: all 0.3s; animation: billItemIn 0.4s both;
+  }
+  .product-card:hover { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
+  .product-card.low-stock { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.04); }
+
+  /* ===== CASH ENTRY ===== */
+  .cash-entry {
+    background: rgba(255,255,255,0.03); border-right: 3px solid;
+    border-radius: 0 10px 10px 0; padding: 12px 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+    animation: billItemIn 0.4s both;
+  }
+
+  /* ===== POS RECEIPT ===== */
+  .pos-receipt-item {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    animation: billItemIn 0.4s both;
+  }
+
   .cc-stat-mini {
     background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
     border-radius:12px; padding:14px; text-align:center;
@@ -1053,6 +1110,23 @@
     <div class="snav-divider"></div>
     <button class="snav-btn" onclick="showTab('credit-card')" data-tab="credit-card">
       <span class="snav-icon">💳</span><span class="snav-label">بطاقات الدفع</span>
+      <span class="snav-arrow">›</span>
+    </button>
+    <div class="snav-divider"></div>
+    <button class="snav-btn" onclick="showTab('pos')" data-tab="pos">
+      <span class="snav-icon">🖨️</span><span class="snav-label">ماكينة الطباعة</span>
+      <span class="snav-arrow">›</span>
+    </button>
+    <button class="snav-btn" onclick="showTab('customers')" data-tab="customers">
+      <span class="snav-icon">👥</span><span class="snav-label">إدارة العملاء</span>
+      <span class="snav-arrow">›</span>
+    </button>
+    <button class="snav-btn" onclick="showTab('inventory')" data-tab="inventory">
+      <span class="snav-icon">📦</span><span class="snav-label">المخزون والمنتجات</span>
+      <span class="snav-arrow">›</span>
+    </button>
+    <button class="snav-btn" onclick="showTab('cashbox')" data-tab="cashbox">
+      <span class="snav-icon">💰</span><span class="snav-label">محفظة النقدية</span>
       <span class="snav-arrow">›</span>
     </button>
     <div class="snav-divider"></div>
@@ -1525,6 +1599,273 @@
 
 </div><!-- /app -->
 
+<!-- ===================== POS - ماكينة الطباعة الفورية ===================== -->
+<div id="page-pos" class="page">
+  <h2 class="page-title">🖨️ ماكينة الطباعة الفورية</h2>
+  <div style="max-width:900px;margin:0 auto">
+
+    <!-- POS Stats -->
+    <div class="stat-grid" style="margin-bottom:20px">
+      <div class="stat-card" style="border-right:4px solid #22c55e">
+        <span class="stat-icon">📊</span>
+        <div><div class="stat-label">مبيعات اليوم</div><div class="stat-value" id="pos-today-sales" style="color:#22c55e">0.00</div><div class="stat-sub">ر.س</div></div>
+      </div>
+      <div class="stat-card" style="border-right:4px solid #3b82f6">
+        <span class="stat-icon">🧾</span>
+        <div><div class="stat-label">فواتير اليوم</div><div class="stat-value" id="pos-today-count" style="color:#3b82f6">0</div><div class="stat-sub">فاتورة</div></div>
+      </div>
+      <div class="stat-card" style="border-right:4px solid #a855f7">
+        <span class="stat-icon">💳</span>
+        <div><div class="stat-label">إجمالي الكل</div><div class="stat-value" id="pos-total-all" style="color:#a855f7">0.00</div><div class="stat-sub">ر.س</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <!-- نموذج الفاتورة السريعة -->
+      <div class="panel">
+        <h3 class="section-title" style="color:#22c55e;margin-bottom:16px">🧾 إنشاء فاتورة سريعة</h3>
+
+        <div class="mb-14">
+          <label class="lbl">اسم العميل</label>
+          <input id="pos-customer" placeholder="اسم العميل أو نقدي...">
+        </div>
+        <div class="mb-14">
+          <label class="lbl">رقم الهاتف (للإرسال)</label>
+          <input id="pos-phone" placeholder="05XXXXXXXX" type="tel">
+        </div>
+
+        <!-- قائمة المنتجات -->
+        <div class="mb-14">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <label class="lbl" style="margin:0">بنود الفاتورة</label>
+            <button class="btn btn-ghost" onclick="posAddItem()" style="font-size:12px;padding:6px 12px">+ إضافة بند</button>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:2.5fr 1fr 1.2fr auto;gap:4px;padding:8px 10px;background:rgba(255,255,255,0.04);font-size:11px;color:#64748b;font-weight:700">
+              <span>البيان</span><span>الكمية</span><span>السعر</span><span></span>
+            </div>
+            <div id="pos-items-list"></div>
+          </div>
+        </div>
+
+        <!-- طريقة الدفع -->
+        <div class="mb-14">
+          <label class="lbl">طريقة الدفع</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="pos-pay-btn active" id="pm-cash" onclick="selectPosPayment('cash',this)">💵 نقدي</button>
+            <button class="pos-pay-btn" id="pm-card" onclick="selectPosPayment('card',this)">💳 بطاقة</button>
+            <button class="pos-pay-btn" id="pm-transfer" onclick="selectPosPayment('transfer',this)">📲 تحويل</button>
+            <button class="pos-pay-btn" id="pm-deferred" onclick="selectPosPayment('deferred',this)">⏰ آجل</button>
+          </div>
+        </div>
+
+        <!-- الإجماليات -->
+        <div class="total-box mb-14" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2)">
+          <div class="total-row"><span>المجموع:</span><span id="pos-subtotal">0.00 ر.س</span></div>
+          <div class="total-row" id="pos-tax-line" style="color:#f59e0b;display:none"><span>الضريبة:</span><span id="pos-tax-val">0.00 ر.س</span></div>
+          <div class="total-row" style="color:#22c55e"><span>خصم:</span>
+            <input type="number" id="pos-discount" value="0" min="0" oninput="calcPosTotal()" style="width:80px;padding:4px 8px;font-size:13px;text-align:center">
+          </div>
+          <div class="total-grand" style="color:#22c55e"><span>💰 الإجمالي:</span><span id="pos-total-display">0.00 ر.س</span></div>
+        </div>
+
+        <!-- أزرار الإصدار -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-primary btn-block" onclick="issuePosReceipt()" style="font-size:16px;padding:14px;background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 4px 20px rgba(34,197,94,0.4)">
+            🖨️ إصدار وطباعة الفاتورة
+          </button>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <button class="btn" onclick="sendPosWhatsApp()" style="background:linear-gradient(135deg,rgba(37,211,102,0.2),rgba(37,211,102,0.1));color:#25d366;border:1px solid rgba(37,211,102,0.3);font-size:13px;padding:10px">
+              <div>📱</div><div style="font-size:11px;margin-top:2px">واتساب</div>
+            </button>
+            <button class="btn" onclick="sendPosEmail()" style="background:linear-gradient(135deg,rgba(234,67,53,0.2),rgba(234,67,53,0.1));color:#ea4335;border:1px solid rgba(234,67,53,0.3);font-size:13px;padding:10px">
+              <div>✉️</div><div style="font-size:11px;margin-top:2px">جيميل</div>
+            </button>
+            <button class="btn" onclick="downloadPosPdf()" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.1));color:#ef4444;border:1px solid rgba(239,68,68,0.3);font-size:13px;padding:10px">
+              <div>📄</div><div style="font-size:11px;margin-top:2px">PDF</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- سجل الفواتير السريعة -->
+      <div class="panel">
+        <h3 class="section-title" style="color:#3b82f6;margin-bottom:14px">📋 آخر الفواتير الصادرة</h3>
+        <div id="pos-receipts-list">
+          <div class="empty-state">لا توجد فواتير صادرة بعد<br><span style="font-size:12px;color:#475569">أصدر أول فاتورة من النموذج</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CUSTOMERS - إدارة العملاء ===================== -->
+<div id="page-customers" class="page">
+  <h2 class="page-title">👥 إدارة العملاء</h2>
+  <div style="max-width:900px;margin:0 auto">
+
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <!-- نموذج إضافة عميل -->
+      <div class="panel">
+        <h3 class="section-title" id="cust-form-title" style="color:#06b6d4;margin-bottom:16px">➕ إضافة عميل جديد</h3>
+        <div class="mb-14"><label class="lbl">الاسم الكامل *</label><input id="cust-name" placeholder="محمد أحمد"></div>
+        <div class="mb-14"><label class="lbl">رقم الهاتف</label><input id="cust-phone" placeholder="05XXXXXXXX" type="tel"></div>
+        <div class="mb-14"><label class="lbl">البريد الإلكتروني</label><input id="cust-email" placeholder="example@mail.com" type="email"></div>
+        <div class="mb-14"><label class="lbl">رقم الوحدة / الشقة</label><input id="cust-unit" placeholder="A-12"></div>
+        <div class="mb-14"><label class="lbl">العنوان</label><input id="cust-address" placeholder="الرياض، حي النزهة..."></div>
+        <div class="mb-14"><label class="lbl">ملاحظات</label><textarea id="cust-notes" rows="2" placeholder="أي ملاحظات..."></textarea></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveCustomer()" style="flex:1" id="cust-save-btn">💾 حفظ العميل</button>
+          <button class="btn btn-ghost" onclick="resetCustomerForm()" id="cust-cancel-btn" style="display:none">✕</button>
+        </div>
+      </div>
+
+      <!-- قائمة العملاء -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 class="section-title" style="color:#06b6d4;margin:0">🗂️ قائمة العملاء</h3>
+          <span id="cust-count" style="background:rgba(6,182,212,0.15);color:#06b6d4;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700">0 عميل</span>
+        </div>
+        <input id="cust-search" placeholder="🔍 بحث في العملاء..." oninput="renderCustomers()" style="margin-bottom:12px">
+        <div id="customers-list">
+          <div class="empty-state">لا يوجد عملاء بعد<br><span style="font-size:12px;color:#475569">أضف أول عميل من النموذج</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== INVENTORY - المخزون ===================== -->
+<div id="page-inventory" class="page">
+  <h2 class="page-title">📦 المخزون والمنتجات</h2>
+  <div style="max-width:900px;margin:0 auto">
+
+    <!-- إحصائيات المخزون -->
+    <div class="stat-grid" style="margin-bottom:20px">
+      <div class="stat-card" style="border-right:4px solid #f59e0b">
+        <span class="stat-icon">📦</span>
+        <div><div class="stat-label">إجمالي المنتجات</div><div class="stat-value" id="inv-total-products" style="color:#f59e0b">0</div><div class="stat-sub">منتج</div></div>
+      </div>
+      <div class="stat-card" style="border-right:4px solid #ef4444">
+        <span class="stat-icon">⚠️</span>
+        <div><div class="stat-label">نفاد المخزون</div><div class="stat-value" id="inv-low-stock" style="color:#ef4444">0</div><div class="stat-sub">منتج تحت الحد</div></div>
+      </div>
+      <div class="stat-card" style="border-right:4px solid #22c55e">
+        <span class="stat-icon">💰</span>
+        <div><div class="stat-label">قيمة المخزون</div><div class="stat-value" id="inv-total-value" style="color:#22c55e">0</div><div class="stat-sub">ر.س</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <!-- نموذج إضافة منتج -->
+      <div class="panel">
+        <h3 class="section-title" id="prod-form-title" style="color:#f59e0b;margin-bottom:16px">➕ إضافة منتج / خدمة</h3>
+        <div class="mb-14"><label class="lbl">اسم المنتج / الخدمة *</label><input id="prod-name" placeholder="مثال: زيت محرك، ورق A4..."></div>
+        <div class="grid-2 mb-14">
+          <div><label class="lbl">الكمية المتوفرة</label><input type="number" id="prod-qty" placeholder="0" min="0"></div>
+          <div><label class="lbl">الحد الأدنى للتنبيه</label><input type="number" id="prod-min" placeholder="5" min="0"></div>
+        </div>
+        <div class="grid-2 mb-14">
+          <div><label class="lbl">سعر الشراء</label><input type="number" id="prod-cost" placeholder="0.00" min="0"></div>
+          <div><label class="lbl">سعر البيع</label><input type="number" id="prod-price" placeholder="0.00" min="0"></div>
+        </div>
+        <div class="mb-14"><label class="lbl">الفئة</label>
+          <select id="prod-category">
+            <option value="general">عام</option>
+            <option value="supplies">مستلزمات</option>
+            <option value="services">خدمات</option>
+            <option value="electronics">إلكترونيات</option>
+            <option value="food">غذاء ومشروبات</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+        <div class="mb-14"><label class="lbl">ملاحظات</label><input id="prod-notes" placeholder="أي ملاحظات..."></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveProduct()" style="flex:1;background:linear-gradient(135deg,#f59e0b,#d97706)" id="prod-save-btn">💾 حفظ المنتج</button>
+          <button class="btn btn-ghost" onclick="resetProductForm()" id="prod-cancel-btn" style="display:none">✕</button>
+        </div>
+      </div>
+
+      <!-- قائمة المنتجات -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 class="section-title" style="color:#f59e0b;margin:0">🗂️ قائمة المنتجات</h3>
+        </div>
+        <input id="prod-search" placeholder="🔍 بحث في المنتجات..." oninput="renderProducts()" style="margin-bottom:12px">
+        <div id="products-list">
+          <div class="empty-state">لا توجد منتجات بعد<br><span style="font-size:12px;color:#475569">أضف أول منتج من النموذج</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CASHBOX - محفظة النقدية ===================== -->
+<div id="page-cashbox" class="page">
+  <h2 class="page-title">💰 محفظة النقدية</h2>
+  <div style="max-width:900px;margin:0 auto">
+
+    <!-- رصيد المحفظة -->
+    <div class="panel mb-20" style="text-align:center;padding:30px;background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(16,185,129,0.05));border-color:rgba(34,197,94,0.2)">
+      <div style="font-size:14px;color:#64748b;margin-bottom:8px">💰 الرصيد الحالي</div>
+      <div id="cashbox-balance" style="font-size:48px;font-weight:900;color:#22c55e">0.00</div>
+      <div style="font-size:14px;color:#64748b;margin-top:4px" id="cashbox-currency">ر.س</div>
+      <div style="display:flex;justify-content:center;gap:20px;margin-top:16px">
+        <div style="text-align:center"><div id="cb-in-total" style="font-size:18px;font-weight:700;color:#22c55e">0.00</div><div style="font-size:11px;color:#64748b">إجمالي الوارد</div></div>
+        <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+        <div style="text-align:center"><div id="cb-out-total" style="font-size:18px;font-weight:700;color:#ef4444">0.00</div><div style="font-size:11px;color:#64748b">إجمالي الصادر</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <!-- نموذج إضافة حركة -->
+      <div class="panel">
+        <h3 class="section-title" style="color:#22c55e;margin-bottom:16px">➕ إضافة حركة نقدية</h3>
+
+        <!-- نوع الحركة -->
+        <div class="mb-14">
+          <label class="lbl">نوع الحركة</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="pos-pay-btn active" id="cb-type-in" onclick="selectCashType('in',this)" style="background:rgba(34,197,94,0.15);color:#22c55e;border-color:rgba(34,197,94,0.3)">📥 وارد (دخل)</button>
+            <button class="pos-pay-btn" id="cb-type-out" onclick="selectCashType('out',this)" style="border-color:rgba(255,255,255,0.1);color:#64748b">📤 صادر (مصروف)</button>
+          </div>
+        </div>
+
+        <div class="mb-14"><label class="lbl">المبلغ *</label><input type="number" id="cb-amount" placeholder="0.00" min="0"></div>
+        <div class="mb-14"><label class="lbl">الوصف / السبب</label><input id="cb-desc" placeholder="مثال: مبيعات اليوم، دفع إيجار..."></div>
+        <div class="grid-2 mb-14">
+          <div><label class="lbl">التاريخ</label><input type="date" id="cb-date"></div>
+          <div><label class="lbl">الفئة</label>
+            <select id="cb-category">
+              <option value="sales">مبيعات</option>
+              <option value="expense">مصروف</option>
+              <option value="salary">رواتب</option>
+              <option value="rent">إيجار</option>
+              <option value="utilities">مرافق</option>
+              <option value="purchase">مشتريات</option>
+              <option value="other">أخرى</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-success btn-block" onclick="saveCashEntry()" style="background:linear-gradient(135deg,#22c55e,#16a34a);font-size:15px">💾 تسجيل الحركة</button>
+      </div>
+
+      <!-- سجل الحركات -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 class="section-title" style="color:#22c55e;margin:0">📋 سجل الحركات</h3>
+          <button class="btn btn-ghost" onclick="clearCashHistory()" style="font-size:11px;padding:5px 10px;color:#ef4444">مسح الكل</button>
+        </div>
+        <div id="cashbox-list">
+          <div class="empty-state">لا توجد حركات نقدية<br><span style="font-size:12px;color:#475569">سجّل أول حركة من النموذج</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
 <script>
 // ===================== DATA =====================
 const BILL_TYPES = [
@@ -1635,6 +1976,10 @@ function showTab(name) {
   if(name==="reports")       renderReports();
   if(name==="settings")      loadSettings();
   if(name==="credit-card")   initCreditCard();
+  if(name==="pos")        initPos();
+  if(name==="customers")  initCustomers();
+  if(name==="inventory")  initInventory();
+  if(name==="cashbox")    initCashbox();
   closeSidebar();
   window.scrollTo(0,0);
 }
@@ -2462,7 +2807,531 @@ function updateCcStats() {
   document.getElementById("cc-expiring").style.color = expiring>0?"#ef4444":"#22c55e";
 }
 
-// ===================== INIT =====================
+
+// ===================== POS - ماكينة الطباعة الفورية =====================
+let posItems = [];
+let posPaymentMethod = "cash";
+let posReceipts = JSON.parse(localStorage.getItem("hb_pos_receipts") || "[]");
+let posCurrentReceiptId = null;
+
+function initPos() {
+  if(!posItems.length) posItems = [{id:uid(), desc:"", qty:1, price:0}];
+  renderPosItems();
+  calcPosTotal();
+  renderPosReceipts();
+  updatePosStats();
+}
+
+function posAddItem() {
+  posItems.push({id:uid(), desc:"", qty:1, price:0});
+  renderPosItems();
+}
+
+function posRemoveItem(id) {
+  posItems = posItems.filter(i=>i.id!==id);
+  if(!posItems.length) posItems=[{id:uid(),desc:"",qty:1,price:0}];
+  renderPosItems(); calcPosTotal();
+}
+
+function posUpdateItem(id, key, val) {
+  posItems = posItems.map(i=>i.id===id?{...i,[key]:key==="qty"||key==="price"?+val:val}:i);
+  calcPosTotal();
+}
+
+function renderPosItems() {
+  const container = document.getElementById("pos-items-list");
+  container.innerHTML = posItems.map(item=>`
+    <div class="pos-item-row">
+      <input value="${item.desc}" placeholder="اسم المنتج/الخدمة" oninput="posUpdateItem('${item.id}','desc',this.value)">
+      <input type="number" value="${item.qty}" min="1" oninput="posUpdateItem('${item.id}','qty',this.value)" style="text-align:center">
+      <input type="number" value="${item.price}" min="0" placeholder="0.00" oninput="posUpdateItem('${item.id}','price',this.value)">
+      <button onclick="posRemoveItem('${item.id}')" style="background:#7f1d1d;color:#fca5a5;border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px">✕</button>
+    </div>`).join("");
+}
+
+function selectPosPayment(method, el) {
+  posPaymentMethod = method;
+  document.querySelectorAll(".pos-pay-btn").forEach(b=>{
+    b.classList.remove("active");
+    b.style.borderColor="rgba(255,255,255,0.1)";
+    b.style.background="rgba(255,255,255,0.04)";
+    b.style.color="#64748b";
+  });
+  el.classList.add("active");
+  el.style.borderColor="rgba(34,197,94,0.3)";
+  el.style.background="rgba(34,197,94,0.15)";
+  el.style.color="#22c55e";
+}
+
+function calcPosTotal() {
+  const sub = posItems.reduce((s,i)=>s+(i.qty*i.price),0);
+  const taxOn = settings.taxEnabled;
+  const tax = taxOn ? sub*(settings.taxRate/100) : 0;
+  const dis = parseFloat(document.getElementById("pos-discount").value)||0;
+  const total = Math.max(0, sub+tax-dis);
+  const c = settings.currency;
+  document.getElementById("pos-subtotal").textContent = cur(sub)+" "+c;
+  document.getElementById("pos-tax-line").style.display = taxOn?"flex":"none";
+  document.getElementById("pos-tax-val").textContent = cur(tax)+" "+c;
+  document.getElementById("pos-total-display").textContent = cur(total)+" "+c;
+  return {sub, tax, dis, total};
+}
+
+function buildPosReceiptData() {
+  const {sub, tax, dis, total} = calcPosTotal();
+  const customer = document.getElementById("pos-customer").value.trim()||"نقدي";
+  const phone = document.getElementById("pos-phone").value.trim();
+  const receiptNum = "POS-"+String(posReceipts.length+1).padStart(4,"0");
+  return {
+    id: uid(), receiptNumber: receiptNum,
+    customer, phone, paymentMethod: posPaymentMethod,
+    items: [...posItems.filter(i=>i.desc)],
+    subtotal: sub, tax, discount: dis, total,
+    currency: settings.currency,
+    companyName: settings.companyName||"إدارة فواتير المنزل",
+    date: today(), createdAt: new Date().toLocaleString("ar-SA"),
+    taxRate: settings.taxRate, applyTax: settings.taxEnabled,
+  };
+}
+
+function issuePosReceipt() {
+  if(!posItems.some(i=>i.desc)) { notify("الرجاء إضافة بند واحد على الأقل ❌","error"); return; }
+  const receipt = buildPosReceiptData();
+  posReceipts.unshift(receipt);
+  localStorage.setItem("hb_pos_receipts", JSON.stringify(posReceipts));
+  notify("✅ تم إصدار الفاتورة بنجاح");
+  printPosReceipt(receipt);
+  resetPosForm();
+  renderPosReceipts();
+  updatePosStats();
+}
+
+function sendPosWhatsApp() {
+  if(!posItems.some(i=>i.desc)) { notify("الرجاء إضافة بند على الأقل ❌","error"); return; }
+  const receipt = buildPosReceiptData();
+  const lines = receipt.items.map(i=>`• ${i.desc}: ${i.qty} × ${cur(i.price)} = ${cur(i.qty*i.price)} ${receipt.currency}`).join("\n");
+  const payMethods = {cash:"💵 نقدي", card:"💳 بطاقة", transfer:"📲 تحويل", deferred:"⏰ آجل"};
+  const msg = `🧾 *فاتورة من ${receipt.companyName}*\nرقم: ${receipt.receiptNumber}\nالتاريخ: ${receipt.date}\nالعميل: ${receipt.customer}\n\n${lines}\n\n💰 الإجمالي: *${cur(receipt.total)} ${receipt.currency}*\nطريقة الدفع: ${payMethods[receipt.paymentMethod]||"نقدي"}\n\nشكراً لتعاملكم معنا 🙏`;
+  const phone = document.getElementById("pos-phone").value.replace(/\D/g,"");
+  const waUrl = `https://wa.me/${phone||""}?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl,"_blank");
+}
+
+function sendPosEmail() {
+  if(!posItems.some(i=>i.desc)) { notify("الرجاء إضافة بند على الأقل ❌","error"); return; }
+  const receipt = buildPosReceiptData();
+  const lines = receipt.items.map(i=>`${i.desc}: ${i.qty} × ${cur(i.price)} = ${cur(i.qty*i.price)} ${receipt.currency}`).join("\n");
+  const subject = `فاتورة ${receipt.receiptNumber} - ${receipt.companyName}`;
+  const body = `فاتورة رقم: ${receipt.receiptNumber}\nالتاريخ: ${receipt.date}\nالعميل: ${receipt.customer}\n\nالبنود:\n${lines}\n\nالإجمالي: ${cur(receipt.total)} ${receipt.currency}\n\nشكراً لتعاملكم معنا`;
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl,"_blank");
+}
+
+function downloadPosPdf() {
+  if(!posItems.some(i=>i.desc)) { notify("الرجاء إضافة بند على الأقل ❌","error"); return; }
+  const receipt = buildPosReceiptData();
+  printPosReceipt(receipt, true);
+}
+
+function printPosReceipt(receipt, downloadOnly=false) {
+  const payMethods = {cash:"💵 نقدي", card:"💳 بطاقة", transfer:"📲 تحويل", deferred:"⏰ آجل"};
+  const itemRows = receipt.items.map(i=>`
+    <tr>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0">${i.desc}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:center">${i.qty}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:left">${cur(i.price)} ${receipt.currency}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:left;font-weight:700">${cur(i.qty*i.price)} ${receipt.currency}</td>
+    </tr>`).join("");
+  const w = window.open("","_blank","width=420,height=700");
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة ${receipt.receiptNumber}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#fff;direction:rtl;max-width:400px;margin:0 auto;padding:10px}
+    .receipt{border:1px dashed #ccc;border-radius:8px;overflow:hidden}
+    .header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:white;padding:20px;text-align:center}
+    .company{font-size:18px;font-weight:700;margin-bottom:4px}
+    .receipt-num{font-size:12px;opacity:0.8;margin-top:6px}
+    .body{padding:16px}
+    .info-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f5f5f5}
+    table{width:100%;border-collapse:collapse;margin:12px 0}
+    th{background:#f8f9fa;padding:8px;font-size:12px;color:#666;text-align:right}
+    .total-section{background:#f8f9fa;padding:12px;border-radius:6px;margin-top:12px}
+    .total-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+    .grand-total{font-size:18px;font-weight:700;color:#1e3a5f;border-top:2px solid #1e3a5f;padding-top:8px;margin-top:6px}
+    .payment-badge{display:inline-block;padding:4px 12px;background:#dcfce7;color:#166534;border-radius:20px;font-size:12px;font-weight:600;margin-top:8px}
+    .footer{text-align:center;padding:14px;border-top:1px dashed #ccc;color:#666;font-size:12px;margin-top:10px}
+    @media print{body{max-width:100%}.receipt{border:none}}
+  </style></head><body>
+  <div class="receipt">
+    <div class="header">
+      <div class="company">🧾 ${receipt.companyName}</div>
+      <div class="receipt-num">رقم الفاتورة: ${receipt.receiptNumber}</div>
+      <div style="font-size:11px;opacity:0.7;margin-top:3px">${receipt.createdAt}</div>
+    </div>
+    <div class="body">
+      <div class="info-row"><span>العميل</span><span style="font-weight:700">${receipt.customer}</span></div>
+      ${receipt.phone?`<div class="info-row"><span>الهاتف</span><span>${receipt.phone}</span></div>`:""}
+      <table>
+        <thead><tr><th>البيان</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+      <div class="total-section">
+        <div class="total-row"><span>المجموع</span><span>${cur(receipt.subtotal)} ${receipt.currency}</span></div>
+        ${receipt.applyTax&&receipt.tax?`<div class="total-row" style="color:#f59e0b"><span>ضريبة (${receipt.taxRate}%)</span><span>${cur(receipt.tax)} ${receipt.currency}</span></div>`:""}
+        ${receipt.discount?`<div class="total-row" style="color:#22c55e"><span>خصم</span><span>- ${cur(receipt.discount)} ${receipt.currency}</span></div>`:""}
+        <div class="total-row grand-total"><span>💰 الإجمالي</span><span>${cur(receipt.total)} ${receipt.currency}</span></div>
+      </div>
+      <div style="text-align:center;margin-top:10px"><span class="payment-badge">${payMethods[receipt.paymentMethod]||"💵 نقدي"}</span></div>
+    </div>
+    <div class="footer">شكراً لتعاملكم معنا 🙏<br><small>تم الإصدار: ${receipt.date}</small></div>
+  </div>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function resetPosForm() {
+  posItems = [{id:uid(), desc:"", qty:1, price:0}];
+  document.getElementById("pos-customer").value="";
+  document.getElementById("pos-phone").value="";
+  document.getElementById("pos-discount").value="0";
+  renderPosItems();
+  calcPosTotal();
+}
+
+function renderPosReceipts() {
+  const container = document.getElementById("pos-receipts-list");
+  if(!posReceipts.length) {
+    container.innerHTML='<div class="empty-state">لا توجد فواتير صادرة بعد<br><span style="font-size:12px;color:#475569">أصدر أول فاتورة من النموذج</span></div>';
+    return;
+  }
+  const payMethods = {cash:"💵",card:"💳",transfer:"📲",deferred:"⏰"};
+  container.innerHTML = posReceipts.slice(0,20).map((r,idx)=>`
+    <div class="pos-receipt-item" style="animation-delay:${idx*0.05}s">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-weight:700;font-size:14px">${r.receiptNumber} — ${r.customer}</span>
+        <span style="color:#22c55e;font-weight:900;font-size:15px">${cur(r.total)} ${r.currency}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#64748b">
+        <span>${r.date} · ${payMethods[r.paymentMethod]||"💵"} · ${r.items.length} بنود</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="printPosReceipt(posReceipts[${posReceipts.indexOf(r)}])" style="background:#1d4ed8;color:white;font-size:11px">🖨️</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePosReceipt('${r.id}')" style="font-size:11px">🗑️</button>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function deletePosReceipt(id) {
+  if(!confirm("حذف هذه الفاتورة؟")) return;
+  posReceipts = posReceipts.filter(r=>r.id!==id);
+  localStorage.setItem("hb_pos_receipts", JSON.stringify(posReceipts));
+  notify("تم الحذف 🗑️"); renderPosReceipts(); updatePosStats();
+}
+
+function updatePosStats() {
+  const todayStr = today();
+  const todayReceipts = posReceipts.filter(r=>r.date===todayStr);
+  document.getElementById("pos-today-sales").textContent = cur(todayReceipts.reduce((s,r)=>s+r.total,0));
+  document.getElementById("pos-today-count").textContent = todayReceipts.length;
+  document.getElementById("pos-total-all").textContent = cur(posReceipts.reduce((s,r)=>s+r.total,0));
+}
+
+// ===================== CUSTOMERS - إدارة العملاء =====================
+let customers = JSON.parse(localStorage.getItem("hb_customers") || "[]");
+let editingCustomerId = null;
+
+function initCustomers() { renderCustomers(); }
+
+function saveCustomer() {
+  const name = document.getElementById("cust-name").value.trim();
+  if(!name) { notify("الرجاء إدخال اسم العميل ❌","error"); return; }
+  const customer = {
+    id: editingCustomerId||uid(),
+    name, phone: document.getElementById("cust-phone").value.trim(),
+    email: document.getElementById("cust-email").value.trim(),
+    unit: document.getElementById("cust-unit").value.trim(),
+    address: document.getElementById("cust-address").value.trim(),
+    notes: document.getElementById("cust-notes").value.trim(),
+    addedAt: today(),
+  };
+  if(editingCustomerId) {
+    customers = customers.map(c=>c.id===editingCustomerId?customer:c);
+    notify("تم تحديث بيانات العميل ✅"); editingCustomerId=null;
+  } else {
+    customers.unshift(customer);
+    notify("تم إضافة العميل بنجاح ✅");
+  }
+  localStorage.setItem("hb_customers", JSON.stringify(customers));
+  resetCustomerForm(); renderCustomers();
+}
+
+function resetCustomerForm() {
+  editingCustomerId=null;
+  ["cust-name","cust-phone","cust-email","cust-unit","cust-address","cust-notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("cust-form-title").textContent="➕ إضافة عميل جديد";
+  document.getElementById("cust-save-btn").textContent="💾 حفظ العميل";
+  document.getElementById("cust-cancel-btn").style.display="none";
+}
+
+function editCustomer(id) {
+  const c=customers.find(x=>x.id===id); if(!c) return;
+  editingCustomerId=id;
+  document.getElementById("cust-name").value=c.name||"";
+  document.getElementById("cust-phone").value=c.phone||"";
+  document.getElementById("cust-email").value=c.email||"";
+  document.getElementById("cust-unit").value=c.unit||"";
+  document.getElementById("cust-address").value=c.address||"";
+  document.getElementById("cust-notes").value=c.notes||"";
+  document.getElementById("cust-form-title").textContent="✏️ تعديل بيانات العميل";
+  document.getElementById("cust-save-btn").textContent="💾 حفظ التعديلات";
+  document.getElementById("cust-cancel-btn").style.display="block";
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteCustomer(id) {
+  if(!confirm("حذف هذا العميل؟")) return;
+  customers=customers.filter(c=>c.id!==id);
+  localStorage.setItem("hb_customers",JSON.stringify(customers));
+  notify("تم حذف العميل 🗑️"); renderCustomers();
+}
+
+function callCustomer(phone) {
+  if(phone) window.open("tel:"+phone);
+}
+
+function whatsappCustomer(phone, name) {
+  const msg = `مرحباً ${name}، `;
+  window.open(`https://wa.me/${phone.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+function renderCustomers() {
+  const search = (document.getElementById("cust-search")||{value:""}).value.toLowerCase();
+  let list = [...customers];
+  if(search) list=list.filter(c=>(c.name+c.phone+c.unit+c.address).toLowerCase().includes(search));
+  document.getElementById("cust-count").textContent=`${customers.length} عميل`;
+  const container=document.getElementById("customers-list");
+  if(!list.length) { container.innerHTML=`<div class="empty-state">${search?"لا نتائج":"لا يوجد عملاء بعد"}</div>`; return; }
+  container.innerHTML = list.map((c,idx)=>`
+    <div class="customer-card" style="animation-delay:${idx*0.06}s">
+      <div class="customer-avatar">${c.name.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:15px">${c.name}</div>
+        ${c.unit?`<div style="font-size:12px;color:#06b6d4;font-weight:600">🏠 وحدة ${c.unit}</div>`:""}
+        ${c.phone?`<div style="font-size:12px;color:#64748b">📞 ${c.phone}</div>`:""}
+        ${c.address?`<div style="font-size:11px;color:#475569;margin-top:2px">📍 ${c.address}</div>`:""}
+        ${c.notes?`<div style="font-size:11px;color:#475569">📝 ${c.notes}</div>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+        ${c.phone?`<button class="btn btn-sm" onclick="whatsappCustomer('${c.phone}','${c.name}')" style="background:rgba(37,211,102,0.2);color:#25d366;border:1px solid rgba(37,211,102,0.3);font-size:11px">📱</button>`:""}
+        <button class="btn btn-sm" onclick="editCustomer('${c.id}')" style="background:#1d4ed8;color:white;font-size:11px">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCustomer('${c.id}')" style="font-size:11px">🗑️</button>
+      </div>
+    </div>`).join("");
+}
+
+// ===================== INVENTORY - المخزون =====================
+let products = JSON.parse(localStorage.getItem("hb_products") || "[]");
+let editingProductId = null;
+
+function initInventory() { renderProducts(); updateInventoryStats(); }
+
+function saveProduct() {
+  const name = document.getElementById("prod-name").value.trim();
+  if(!name) { notify("الرجاء إدخال اسم المنتج ❌","error"); return; }
+  const product = {
+    id: editingProductId||uid(),
+    name, category: document.getElementById("prod-category").value,
+    qty: parseFloat(document.getElementById("prod-qty").value)||0,
+    minQty: parseFloat(document.getElementById("prod-min").value)||5,
+    cost: parseFloat(document.getElementById("prod-cost").value)||0,
+    price: parseFloat(document.getElementById("prod-price").value)||0,
+    notes: document.getElementById("prod-notes").value.trim(),
+    addedAt: today(),
+  };
+  if(editingProductId) {
+    products=products.map(p=>p.id===editingProductId?product:p);
+    notify("تم تحديث المنتج ✅"); editingProductId=null;
+  } else {
+    products.unshift(product);
+    notify("تم إضافة المنتج ✅");
+  }
+  localStorage.setItem("hb_products",JSON.stringify(products));
+  resetProductForm(); renderProducts(); updateInventoryStats();
+}
+
+function resetProductForm() {
+  editingProductId=null;
+  ["prod-name","prod-qty","prod-min","prod-cost","prod-price","prod-notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("prod-category").value="general";
+  document.getElementById("prod-form-title").textContent="➕ إضافة منتج / خدمة";
+  document.getElementById("prod-save-btn").textContent="💾 حفظ المنتج";
+  document.getElementById("prod-cancel-btn").style.display="none";
+}
+
+function editProduct(id) {
+  const p=products.find(x=>x.id===id); if(!p) return;
+  editingProductId=id;
+  document.getElementById("prod-name").value=p.name||"";
+  document.getElementById("prod-category").value=p.category||"general";
+  document.getElementById("prod-qty").value=p.qty||"";
+  document.getElementById("prod-min").value=p.minQty||"";
+  document.getElementById("prod-cost").value=p.cost||"";
+  document.getElementById("prod-price").value=p.price||"";
+  document.getElementById("prod-notes").value=p.notes||"";
+  document.getElementById("prod-form-title").textContent="✏️ تعديل المنتج";
+  document.getElementById("prod-save-btn").textContent="💾 حفظ التعديلات";
+  document.getElementById("prod-cancel-btn").style.display="block";
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function adjustStock(id, delta) {
+  products=products.map(p=>p.id===id?{...p,qty:Math.max(0,(p.qty||0)+delta)}:p);
+  localStorage.setItem("hb_products",JSON.stringify(products));
+  renderProducts(); updateInventoryStats();
+}
+
+function deleteProduct(id) {
+  if(!confirm("حذف هذا المنتج؟")) return;
+  products=products.filter(p=>p.id!==id);
+  localStorage.setItem("hb_products",JSON.stringify(products));
+  notify("تم الحذف 🗑️"); renderProducts(); updateInventoryStats();
+}
+
+const CATEGORY_ICONS = {general:"📦",supplies:"🔧",services:"⚙️",electronics:"📱",food:"🍽️",other:"🗂️"};
+
+function renderProducts() {
+  const search=(document.getElementById("prod-search")||{value:""}).value.toLowerCase();
+  let list=[...products];
+  if(search) list=list.filter(p=>(p.name+p.category).toLowerCase().includes(search));
+  const container=document.getElementById("products-list");
+  if(!list.length){container.innerHTML=`<div class="empty-state">${search?"لا نتائج":"لا توجد منتجات بعد"}</div>`;return;}
+  container.innerHTML=list.map((p,idx)=>{
+    const low=p.qty<=p.minQty;
+    const profit=p.price-p.cost;
+    return `<div class="product-card ${low?"low-stock":""}" style="animation-delay:${idx*0.06}s">
+      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,${low?"#ef444422":"rgba(245,158,11,0.15)"},${low?"#ef444411":"rgba(245,158,11,0.08)"});display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid ${low?"rgba(239,68,68,0.3)":"rgba(245,158,11,0.2)"}">${CATEGORY_ICONS[p.category]||"📦"}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:14px">${p.name}</div>
+        <div style="display:flex;gap:10px;font-size:12px;margin-top:3px;flex-wrap:wrap">
+          <span style="color:${low?"#ef4444":"#22c55e"};font-weight:700">${low?"⚠️ ":"📦 "}${p.qty} متوفر</span>
+          <span style="color:#64748b">سعر: ${cur(p.price)} ${settings.currency}</span>
+          ${profit>0?`<span style="color:#22c55e">ربح: ${cur(profit)}</span>`:""}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <button onclick="adjustStock('${p.id}',-1)" style="width:26px;height:26px;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.2);cursor:pointer;font-size:14px">-</button>
+          <span style="font-size:13px;font-weight:700;min-width:30px;text-align:center">${p.qty}</span>
+          <button onclick="adjustStock('${p.id}',1)" style="width:26px;height:26px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.2);cursor:pointer;font-size:14px">+</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+        <button class="btn btn-sm" onclick="editProduct('${p.id}')" style="background:#1d4ed8;color:white;font-size:11px">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')" style="font-size:11px">🗑️</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function updateInventoryStats() {
+  document.getElementById("inv-total-products").textContent=products.length;
+  document.getElementById("inv-low-stock").textContent=products.filter(p=>p.qty<=p.minQty).length;
+  document.getElementById("inv-total-value").textContent=cur(products.reduce((s,p)=>s+(p.qty*p.cost),0));
+}
+
+// ===================== CASHBOX - محفظة النقدية =====================
+let cashEntries = JSON.parse(localStorage.getItem("hb_cashbox") || "[]");
+let cashType = "in";
+
+function initCashbox() {
+  document.getElementById("cb-date").value = today();
+  renderCashbox();
+  updateCashboxStats();
+}
+
+function selectCashType(type, el) {
+  cashType = type;
+  document.getElementById("cb-type-in").style.background="rgba(255,255,255,0.04)";
+  document.getElementById("cb-type-in").style.borderColor="rgba(255,255,255,0.1)";
+  document.getElementById("cb-type-in").style.color="#64748b";
+  document.getElementById("cb-type-out").style.background="rgba(255,255,255,0.04)";
+  document.getElementById("cb-type-out").style.borderColor="rgba(255,255,255,0.1)";
+  document.getElementById("cb-type-out").style.color="#64748b";
+  if(type==="in") {
+    el.style.background="rgba(34,197,94,0.15)";
+    el.style.borderColor="rgba(34,197,94,0.3)";
+    el.style.color="#22c55e";
+  } else {
+    el.style.background="rgba(239,68,68,0.15)";
+    el.style.borderColor="rgba(239,68,68,0.3)";
+    el.style.color="#ef4444";
+  }
+}
+
+function saveCashEntry() {
+  const amount=parseFloat(document.getElementById("cb-amount").value);
+  if(!amount||amount<=0){notify("الرجاء إدخال مبلغ صحيح ❌","error");return;}
+  const desc=document.getElementById("cb-desc").value.trim()||"بدون وصف";
+  const entry={
+    id:uid(), type:cashType, amount,
+    desc, category:document.getElementById("cb-category").value,
+    date:document.getElementById("cb-date").value||today(),
+    createdAt:new Date().toLocaleTimeString("ar-SA"),
+  };
+  cashEntries.unshift(entry);
+  localStorage.setItem("hb_cashbox",JSON.stringify(cashEntries));
+  document.getElementById("cb-amount").value="";
+  document.getElementById("cb-desc").value="";
+  notify(`تم تسجيل ${cashType==="in"?"الوارد":"الصادر"} ✅`);
+  renderCashbox(); updateCashboxStats();
+}
+
+function deleteCashEntry(id){
+  if(!confirm("حذف هذه الحركة؟")) return;
+  cashEntries=cashEntries.filter(e=>e.id!==id);
+  localStorage.setItem("hb_cashbox",JSON.stringify(cashEntries));
+  notify("تم الحذف 🗑️"); renderCashbox(); updateCashboxStats();
+}
+
+function clearCashHistory(){
+  if(!confirm("مسح كل سجل الحركات النقدية نهائياً؟")) return;
+  cashEntries=[];
+  localStorage.setItem("hb_cashbox","[]");
+  notify("تم مسح السجل 🗑️","error"); renderCashbox(); updateCashboxStats();
+}
+
+const CB_CATEGORY_ICONS={sales:"🛒",expense:"💸",salary:"👷",rent:"🏠",utilities:"⚡",purchase:"📦",other:"📋"};
+
+function renderCashbox(){
+  const container=document.getElementById("cashbox-list");
+  if(!cashEntries.length){container.innerHTML='<div class="empty-state">لا توجد حركات نقدية</div>';return;}
+  container.innerHTML=cashEntries.slice(0,50).map((e,idx)=>`
+    <div class="cash-entry" style="border-color:${e.type==="in"?"#22c55e":"#ef4444"};animation-delay:${idx*0.05}s">
+      <span style="font-size:18px">${CB_CATEGORY_ICONS[e.category]||"📋"}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13px">${e.desc}</div>
+        <div style="font-size:11px;color:#64748b">${e.date} · ${e.createdAt}</div>
+      </div>
+      <div style="text-align:left;flex-shrink:0">
+        <div style="font-weight:900;font-size:15px;color:${e.type==="in"?"#22c55e":"#ef4444"}">${e.type==="in"?"+":"-"}${cur(e.amount)} ${settings.currency}</div>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-sm btn-danger" onclick="deleteCashEntry('${e.id}')" style="font-size:10px">🗑️</button>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function updateCashboxStats(){
+  const totalIn=cashEntries.filter(e=>e.type==="in").reduce((s,e)=>s+e.amount,0);
+  const totalOut=cashEntries.filter(e=>e.type==="out").reduce((s,e)=>s+e.amount,0);
+  const balance=totalIn-totalOut;
+  const c=settings.currency;
+  document.getElementById("cashbox-balance").textContent=cur(balance);
+  document.getElementById("cashbox-balance").style.color=balance>=0?"#22c55e":"#ef4444";
+  document.getElementById("cashbox-currency").textContent=c;
+  document.getElementById("cb-in-total").textContent=cur(totalIn)+" "+c;
+  document.getElementById("cb-out-total").textContent=cur(totalOut)+" "+c;
+}
+
+
 function init() {
   // Header date
   document.getElementById("header-date").textContent =
