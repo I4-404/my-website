@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>نظام الحضور والانصراف</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+:root{
+  --bg:#0B1220; --surface:#121B2E; --surface2:#182238; --surface3:#1E2A45;
+  --border:#243350; --primary:#00D9C0; --primary-dark:#04231F; --amber:#FFB020;
+  --danger:#FF5470; --violet:#8B7BFF; --text:#E8EDF5; --muted:#8B97AC; --faint:#5C6B85;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Tajawal','Segoe UI',sans-serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+.app{display:flex;min-height:100vh;}
+aside{width:250px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:24px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{width:40px;height:40px;border-radius:12px;background:rgba(0,217,192,.15);display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;}
+.brand-icon::after{content:'';position:absolute;inset:-4px;border-radius:14px;border:1px solid rgba(0,217,192,.3);animation:pulse 2.2s infinite;}
+@keyframes pulse{0%{opacity:.8;transform:scale(1);}70%{opacity:0;transform:scale(1.25);}100%{opacity:0;}}
+.brand b{font-size:14px;display:block;}
+.brand span{font-size:11px;color:var(--muted);}
+nav{display:flex;flex-direction:column;gap:4px;}
+.navbtn{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;text-align:right;}
+.navbtn.active{background:rgba(0,217,192,.1);color:var(--primary);}
+.side-clock{margin-top:auto;padding:12px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--muted);}
+main{flex:1;padding:28px;max-width:100%;overflow-x:hidden;}
+h1{font-size:24px;font-weight:900;margin:0;}
+.sub{color:var(--muted);font-size:13px;margin-top:4px;}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.between{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.pad{padding:20px;}
+.grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:900px){.grid-stats{grid-template-columns:repeat(2,1fr);} aside{display:none;} main{padding:16px;padding-bottom:70px;}}
+.stat{display:flex;align-items:center;gap:14px;padding:18px;}
+.stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stat b{font-size:22px;display:block;}
+.stat span{font-size:12px;color:var(--muted);}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:12px;font-weight:800;font-size:13px;font-family:inherit;border:none;cursor:pointer;}
+.btn-primary{background:var(--primary);color:var(--primary-dark);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:rgba(255,84,112,.1);color:var(--danger);border:1px solid rgba(255,84,112,.35);}
+.btn:active{transform:scale(.96);}
+input,select{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;outline:none;width:100%;}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:right;padding:12px 14px;color:var(--muted);font-weight:800;white-space:nowrap;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;}
+.dot{width:6px;height:6px;border-radius:50%;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;}
+.overlay{position:fixed;inset:0;background:#000000AA;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-head h3{margin:0;font-size:17px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--primary);color:var(--primary-dark);padding:12px 20px;border-radius:12px;font-weight:800;font-size:13px;z-index:100;display:flex;align-items:center;gap:8px;}
+.toast.err{background:var(--danger);color:#2a0a10;}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:700;background:var(--surface2);border:1px solid var(--border);}
+.mobilenav{display:none;}
+@media(max-width:900px){
+  .mobilenav{display:flex;position:fixed;bottom:0;inset-inline:0;background:var(--surface);border-top:1px solid var(--border);justify-content:space-around;padding:8px;z-index:40;}
+  .mobilenav button{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-family:inherit;}
+  .mobilenav button.active{color:var(--primary);}
+}
+.chartwrap{position:relative;height:260px;}
+.empty{text-align:center;padding:40px;color:var(--faint);}
+.note-box{display:flex;gap:10px;padding:16px;border-radius:14px;background:var(--surface2);font-size:12px;line-height:1.8;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="brand-icon">🖐️</div>
+      <div><b id="brandName">شركتي</b><span>نظام الحضور والانصراف</span></div>
+    </div>
+    <nav id="sideNav"></nav>
+    <div class="side-clock" id="sideClock"></div>
+    <button class="chip" style="justify-content:center;cursor:pointer;border:none;" onclick="setView('settings')" id="sideBackupBadge"></button>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="mobilenav" id="mobileNav"></div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const nowHM = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const fmtDateAr = iso => { try { return new Date(iso+'T00:00:00').toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); } catch { return iso; } };
+const minutesOf = hm => { if(!hm) return null; const [h,m]=hm.split(':').map(Number); return h*60+m; };
+const hoursBetween = (a,b) => { if(!a||!b) return 0; const diff = minutesOf(b)-minutesOf(a); return diff>0 ? +(diff/60).toFixed(2) : 0; };
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const STATUS_META = {
+  present:{label:'حاضر', color:'var(--primary)'},
+  late:{label:'متأخر', color:'var(--amber)'},
+  absent:{label:'غائب', color:'var(--danger)'},
+  leave:{label:'إجازة', color:'var(--violet)'},
+};
+
+const SEED_DEPARTMENTS = ['الإدارة','الموارد البشرية','المبيعات','تقنية المعلومات','المحاسبة'];
+const SEED_EMPLOYEES = [
+  {id:uid(),code:'EMP-1001',name:'أحمد الشمري',department:'تقنية المعلومات',position:'مطور برمجيات',phone:'0501234567',email:'ahmed@company.com',fingerprintId:'FP-001',joinDate:'2023-02-01',status:'active'},
+  {id:uid(),code:'EMP-1002',name:'سارة العتيبي',department:'الموارد البشرية',position:'أخصائية موارد بشرية',phone:'0559876543',email:'sara@company.com',fingerprintId:'FP-002',joinDate:'2022-11-15',status:'active'},
+  {id:uid(),code:'EMP-1003',name:'خالد المطيري',department:'المبيعات',position:'مندوب مبيعات',phone:'0533344556',email:'khaled@company.com',fingerprintId:'FP-003',joinDate:'2024-01-10',status:'active'},
+];
+const DEFAULT_SETTINGS = {companyName:'شركتي', workStart:'08:00', workEnd:'16:00', graceMinutes:15};
+
+// ---------------------------------------------------------------------------
+// State + persistence
+// ---------------------------------------------------------------------------
+const STORAGE_KEY = 'hr-attendance-data-v1';
+let state = {
+  view:'dashboard',
+  employees: SEED_EMPLOYEES,
+  attendance: [],
+  departments: SEED_DEPARTMENTS,
+  settings: DEFAULT_SETTINGS,
+};
+let charts = {};
+let saveTimer = null;
+let storageAvailable = !!(window.storage && typeof window.storage.get === 'function');
+let storageWarned = false;
+
+async function loadState(){
+  if(!storageAvailable) return;
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const data = JSON.parse(res.value);
+      state = {...state, ...data, view:'dashboard'};
+    }
+  }catch(e){ /* no saved data yet on first run — not an error */ }
+}
+function persist(){
+  if(!storageAvailable) return;
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify({
+        employees: state.employees, attendance: state.attendance,
+        departments: state.departments, settings: state.settings,
+      }), false);
+    }catch(e){
+      // Persistence isn't supported in this environment (e.g. a plain
+      // browser tab outside claude.ai). The app still works fully in
+      // this session — data just won't be saved between page loads.
+      storageAvailable = false;
+      if(!storageWarned){ console.warn('Auto-save unavailable in this environment; data will not persist after reload.'); storageWarned = true; }
+    }
+  }, 400);
+}
+
+function showToast(msg, kind='ok'){
+  const root = document.getElementById('toastRoot');
+  root.innerHTML = `<div class="toast ${kind==='err'?'err':''}">${kind==='err'?'⚠️':'✅'} ${esc(msg)}</div>`;
+  setTimeout(()=>{ root.innerHTML=''; }, 2600);
+}
+
+function computeStatus(checkIn){
+  if(!checkIn) return 'absent';
+  const start = minutesOf(state.settings.workStart) + Number(state.settings.graceMinutes||0);
+  return minutesOf(checkIn) > start ? 'late' : 'present';
+}
+function empName(id){ const e = state.employees.find(e=>e.id===id); return e ? e.name : '—'; }
+function activeEmployees(){ return state.employees.filter(e=>e.status==='active'); }
+
+// ---------------------------------------------------------------------------
+// Modal helpers
+// ---------------------------------------------------------------------------
+function openModal(html){
+  document.getElementById('modalRoot').innerHTML = `<div class="overlay" onclick="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+const NAV = [
+  {id:'dashboard', label:'لوحة التحكم', icon:'📊'},
+  {id:'employees', label:'الموظفون', icon:'👥'},
+  {id:'attendance', label:'الحضور والانصراف', icon:'🖐️'},
+  {id:'reports', label:'التقارير', icon:'📁'},
+  {id:'settings', label:'الإعدادات', icon:'⚙️'},
+];
+function setView(v){ state.view = v; render(); }
+
+function renderNav(){
+  document.getElementById('sideNav').innerHTML = NAV.map(n=>`
+    <button class="navbtn ${state.view===n.id?'active':''}" onclick="setView('${n.id}')">
+      <span>${n.icon}</span><span>${n.label}</span>
+    </button>`).join('');
+  document.getElementById('mobileNav').innerHTML = NAV.map(n=>`
+    <button class="${state.view===n.id?'active':''}" onclick="setView('${n.id}')">
+      <span>${n.icon}</span><span>${n.label}</span>
+    </button>`).join('');
+  document.getElementById('brandName').textContent = state.settings.companyName;
+  const badge = document.getElementById('sideBackupBadge');
+  if(badge){
+    badge.style.color = storageAvailable ? 'var(--primary)' : 'var(--amber)';
+    badge.innerHTML = storageAvailable ? '🟢 الحفظ التلقائي مفعّل' : '🟡 خذ نسخة احتياطية';
+  }
+}
+function tickClock(){
+  const d = new Date();
+  document.getElementById('sideClock').innerHTML = `⏰ <span class="mono">${d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><br>${fmtDateAr(todayISO())}`;
+}
+
+// ---------------------------------------------------------------------------
+// Root render
+// ---------------------------------------------------------------------------
+function render(){
+  renderNav();
+  const main = document.getElementById('main');
+  if(state.view==='dashboard') main.innerHTML = viewDashboard();
+  else if(state.view==='employees') main.innerHTML = viewEmployees();
+  else if(state.view==='attendance') main.innerHTML = viewAttendance();
+  else if(state.view==='reports') main.innerHTML = viewReports();
+  else if(state.view==='settings') main.innerHTML = viewSettings();
+  persist();
+  if(state.view==='dashboard') setTimeout(initDashboardCharts, 0);
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------------------
+function viewDashboard(){
+  const today = todayISO();
+  const todayRecords = state.attendance.filter(a=>a.date===today);
+  const present = todayRecords.filter(a=>a.status==='present').length;
+  const late = todayRecords.filter(a=>a.status==='late').length;
+  const onLeave = todayRecords.filter(a=>a.status==='leave').length;
+  const recordedIds = new Set(todayRecords.map(a=>a.employeeId));
+  const absent = activeEmployees().filter(e=>!recordedIds.has(e.id)).length;
+
+  return `
+    <div style="margin-bottom:22px;"><h1>لوحة التحكم</h1><div class="sub">${fmtDateAr(today)}</div></div>
+    <div class="grid-stats">
+      ${statCard('👥','إجمالي الموظفين النشطين', activeEmployees().length, 'var(--primary)')}
+      ${statCard('➡️','حاضرون اليوم', present, 'var(--primary)', late+' متأخر')}
+      ${statCard('⚠️','غائبون اليوم', absent, 'var(--danger)')}
+      ${statCard('🌴','في إجازة', onLeave, 'var(--violet)')}
+    </div>
+
+    <div class="card pad" style="margin-bottom:20px;">
+      <div class="row" style="margin-bottom:14px;">
+        <span style="font-size:18px;">🖐️</span><b>تسجيل بصمة سريع</b>
+        <span style="margin-right:auto;font-size:11px;color:var(--faint);">محاكاة جهاز البصمة يدويًا من المتصفح</span>
+      </div>
+      <div class="row">
+        <select id="scanEmpSelect" style="flex:1;min-width:220px;">
+          <option value="">اختر الموظف...</option>
+          ${activeEmployees().map(e=>`<option value="${e.id}">${esc(e.name)} — ${esc(e.department)}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" onclick="quickCheckIn()">➡️ تسجيل حضور</button>
+        <button class="btn btn-ghost" onclick="quickCheckOut()">⬅️ تسجيل انصراف</button>
+      </div>
+    </div>
+
+    <div class="card pad" style="margin-bottom:20px;">
+      <div class="row" style="margin-bottom:14px;">
+        <span style="font-size:18px;">📋</span><b>متابعة اليوم</b>
+        <span style="margin-right:auto;font-size:11px;color:var(--faint);">موظفون نشطون لم يسجّلوا حضورًا بعد اليوم</span>
+      </div>
+      ${followUpList(recordedIds)}
+    </div>
+
+    <div class="grid" style="display:grid;grid-template-columns:3fr 2fr;gap:16px;">
+      <div class="card pad">
+        <b style="font-size:14px;">اتجاه الحضور — آخر 7 أيام</b>
+        <div class="chartwrap" style="margin-top:10px;"><canvas id="weekChart"></canvas></div>
+      </div>
+      <div class="card pad">
+        <b style="font-size:14px;">توزيع الموظفين حسب القسم</b>
+        <div class="chartwrap" style="margin-top:10px;"><canvas id="deptChart"></canvas></div>
+      </div>
+    </div>
+    <style>@media(max-width:900px){#main .grid{grid-template-columns:1fr !important;}}</style>
+  `;
+}
+function followUpList(recordedIds){
+  const pending = activeEmployees().filter(e=>!recordedIds.has(e.id));
+  if(!pending.length) return `<div style="font-size:12px;color:var(--primary);">✅ جميع الموظفين النشطين سجّلوا حضورهم اليوم.</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;">
+    ${pending.map(e=>`
+      <div class="row" style="justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;">
+        <span style="font-size:13px;font-weight:700;">${esc(e.name)} <span style="color:var(--faint);font-weight:400;font-size:11px;">— ${esc(e.department)}</span></span>
+        <div class="row" style="gap:8px;">
+          <button class="btn btn-primary" style="padding:6px 12px;font-size:12px;" onclick="quickCheckInFor('${e.id}')">➡️ تسجيل حضور</button>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="markLeaveFor('${e.id}')">🌴 إجازة</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function quickCheckInFor(empId){
+  const today = todayISO();
+  if(state.attendance.find(a=>a.employeeId===empId && a.date===today)) return showToast('تم تسجيل حضور هذا الموظف اليوم بالفعل','err');
+  const checkIn = nowHM();
+  const status = computeStatus(checkIn);
+  state.attendance.push({id:uid(), employeeId:empId, date:today, checkIn, checkOut:'', status, note:'', source:'fingerprint'});
+  showToast('تم تسجيل الحضور — '+STATUS_META[status].label);
+  render();
+}
+function markLeaveFor(empId){
+  const today = todayISO();
+  if(state.attendance.find(a=>a.employeeId===empId && a.date===today)) return showToast('يوجد سجل لهذا الموظف اليوم بالفعل','err');
+  state.attendance.push({id:uid(), employeeId:empId, date:today, checkIn:'', checkOut:'', status:'leave', note:'إجازة', source:'manual'});
+  showToast('تم تسجيل إجازة اليوم لهذا الموظف');
+  render();
+}
+function statCard(icon,label,value,color,sub){
+  return `<div class="card stat">
+    <div class="stat-icon" style="background:${color}22;">${icon}</div>
+    <div><b class="mono">${value}</b><span>${label}</span>${sub?`<div style="font-size:11px;color:var(--faint);margin-top:2px;">${sub}</div>`:''}</div>
+  </div>`;
+}
+function quickCheckIn(){
+  const empId = document.getElementById('scanEmpSelect').value;
+  if(!empId) return showToast('اختر موظفًا أولًا','err');
+  const today = todayISO();
+  if(state.attendance.find(a=>a.employeeId===empId && a.date===today)) return showToast('تم تسجيل حضور هذا الموظف اليوم بالفعل','err');
+  const checkIn = nowHM();
+  const status = computeStatus(checkIn);
+  state.attendance.push({id:uid(), employeeId:empId, date:today, checkIn, checkOut:'', status, note:'', source:'fingerprint'});
+  showToast('تم تسجيل الحضور — '+STATUS_META[status].label);
+  render();
+}
+function quickCheckOut(){
+  const empId = document.getElementById('scanEmpSelect').value;
+  if(!empId) return showToast('اختر موظفًا أولًا','err');
+  const today = todayISO();
+  const rec = state.attendance.find(a=>a.employeeId===empId && a.date===today);
+  if(!rec) return showToast('لا يوجد تسجيل حضور لهذا الموظف اليوم','err');
+  rec.checkOut = nowHM();
+  showToast('تم تسجيل الانصراف');
+  render();
+}
+// Lightweight dependency-free chart drawing (no external library required)
+function sizeCanvas(canvas){
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(rect.width, 260);
+  const h = 260;
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  canvas.width = w*dpr;
+  canvas.height = h*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, w, h};
+}
+
+function drawWeekChart(canvas, days){
+  const {ctx, w, h} = sizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const legend = [['حاضر','#00D9C0'],['متأخر','#FFB020'],['إجازة','#8B7BFF'],['غائب','#FF5470']];
+  const legendY = h-14;
+  const padTop = 14, padBottom = 46, padSide = 10;
+  const plotH = h - padTop - padBottom;
+  const maxTotal = Math.max(1, ...days.map(d=>d.p+d.l+d.lv+d.abs));
+  const barSlot = (w - padSide*2) / days.length;
+  const barW = Math.min(34, barSlot*0.55);
+
+  // gridlines
+  ctx.strokeStyle = '#243350';
+  ctx.lineWidth = 1;
+  for(let i=0;i<=3;i++){
+    const y = padTop + plotH - (plotH*i/3);
+    ctx.beginPath(); ctx.moveTo(padSide, y); ctx.lineTo(w-padSide, y); ctx.stroke();
+  }
+
+  days.forEach((d,i)=>{
+    const cx = padSide + barSlot*i + barSlot/2;
+    let y = padTop + plotH;
+    const segs = [['#00D9C0', d.p], ['#FFB020', d.l], ['#8B7BFF', d.lv], ['#FF5470', d.abs]];
+    segs.forEach(([color,val])=>{
+      const segH = (val/maxTotal) * plotH;
+      if(segH>0){
+        ctx.fillStyle = color;
+        ctx.fillRect(cx - barW/2, y - segH, barW, segH);
+      }
+      y -= segH;
+    });
+    ctx.fillStyle = '#8B97AC';
+    ctx.font = '11px Tajawal, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.name, cx, h - padBottom + 16);
+  });
+
+  // legend
+  let lx = w/2 - (legend.length*70)/2;
+  legend.forEach(([label,color])=>{
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(lx, legendY, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#E8EDF5';
+    ctx.font = '11px Tajawal, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, lx+8, legendY+4);
+    lx += 70;
+  });
+}
+
+function drawDeptChart(canvas, deptCounts){
+  const {ctx, w, h} = sizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const colors = ['#00D9C0','#FFB020','#8B7BFF','#FF5470','#5EA8FF','#FF9F6B'];
+  const total = deptCounts.reduce((s,d)=>s+d.value,0) || 1;
+  const cx = w/2, cy = h/2 - 24, r = Math.min(w,h)*0.28, rInner = r*0.58;
+
+  if(!deptCounts.length){
+    ctx.fillStyle = '#5C6B85';
+    ctx.font = '13px Tajawal, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('لا توجد بيانات بعد', cx, cy);
+    return;
+  }
+
+  let start = -Math.PI/2;
+  deptCounts.forEach((d,i)=>{
+    const slice = (d.value/total) * Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx, cy, r, start, start+slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    start += slice;
+  });
+  // inner hole for donut look
+  ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2);
+  ctx.fillStyle = '#121B2E'; ctx.fill();
+
+  // legend below
+  const cols = 2;
+  const startY = cy + r + 24;
+  deptCounts.forEach((d,i)=>{
+    const col = i % cols, rowI = Math.floor(i/cols);
+    const lx = w/2 - 130 + col*140;
+    const ly = startY + rowI*20;
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#E8EDF5';
+    ctx.font = '11px Tajawal, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${d.name} (${d.value})`, lx+8, ly+4);
+  });
+}
+
+function initDashboardCharts(){
+  const wCanvas = document.getElementById('weekChart');
+  const dCanvas = document.getElementById('deptChart');
+  if(!wCanvas || !dCanvas) return;
+
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const iso = d.toISOString().slice(0,10);
+    const recs = state.attendance.filter(a=>a.date===iso);
+    const p = recs.filter(a=>a.status==='present').length;
+    const l = recs.filter(a=>a.status==='late').length;
+    const lv = recs.filter(a=>a.status==='leave').length;
+    const abs = Math.max(activeEmployees().length - p - l - lv, 0);
+    days.push({name:d.toLocaleDateString('ar-EG',{weekday:'short'}), p, l, lv, abs});
+  }
+  drawWeekChart(wCanvas, days);
+
+  const deptCounts = state.departments
+    .map(d=>({name:d, value: state.employees.filter(e=>e.department===d && e.status==='active').length}))
+    .filter(d=>d.value>0);
+  drawDeptChart(dCanvas, deptCounts);
+
+  window.addEventListener('resize', ()=>{ if(state.view==='dashboard'){ drawWeekChart(wCanvas, days); drawDeptChart(dCanvas, deptCounts); } }, {once:true});
+}
+
+// ---------------------------------------------------------------------------
+// Employees view
+// ---------------------------------------------------------------------------
+let empSearch = '', empDeptFilter = '';
+function viewEmployees(){
+  return `
+    <div class="between">
+      <div><h1>الموظفون</h1><div class="sub">${state.employees.length} موظف مسجل</div></div>
+      <div class="row">
+        <input type="file" id="empFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importEmployeesExcel(this.files[0])" />
+        <button class="btn btn-ghost" onclick="downloadEmployeeTemplate()">⬇️ تحميل القالب</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('empFile').click()">⬆️ استيراد من Excel</button>
+        <button class="btn btn-ghost" onclick="exportEmployeesExcel()">📁 تصدير Excel</button>
+        <button class="btn btn-primary" onclick="openEmployeeModal()">➕ إضافة موظف يدويًا</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:16px;">
+      <input placeholder="🔍 بحث بالاسم أو الرقم الوظيفي أو الهاتف..." style="flex:1;min-width:220px;" value="${esc(empSearch)}" oninput="empSearch=this.value; renderEmpTable();" />
+      <select style="width:200px;" onchange="empDeptFilter=this.value; renderEmpTable();">
+        <option value="">كل الأقسام</option>
+        ${state.departments.map(d=>`<option value="${esc(d)}" ${empDeptFilter===d?'selected':''}>${esc(d)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="card" style="overflow-x:auto;"><table>
+      <thead><tr>${['الرقم الوظيفي','الاسم','القسم','المنصب','الهاتف','رقم البصمة','الحالة',''].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody id="empTableBody">${employeeRows()}</tbody>
+    </table></div>
+  `;
+}
+function employeeRows(){
+  const filtered = state.employees.filter(e =>
+    (e.name.includes(empSearch) || e.code.includes(empSearch) || (e.phone||'').includes(empSearch)) &&
+    (!empDeptFilter || e.department===empDeptFilter));
+  if(!filtered.length) return `<tr><td colspan="8" class="empty">لا يوجد موظفون مطابقون</td></tr>`;
+  return filtered.map(e => `<tr>
+    <td class="mono" style="color:var(--faint)">${esc(e.code)}</td>
+    <td style="font-weight:700">${esc(e.name)}</td>
+    <td>${esc(e.department)}</td>
+    <td style="color:var(--muted)">${esc(e.position)}</td>
+    <td class="mono" style="color:var(--muted)">${esc(e.phone)}</td>
+    <td class="mono" style="color:var(--muted)">${esc(e.fingerprintId)}</td>
+    <td><span class="badge" style="background:${e.status==='active'?'rgba(0,217,192,.15)':'rgba(92,107,133,.2)'};color:${e.status==='active'?'var(--primary)':'var(--faint)'}">${e.status==='active'?'نشط':'غير نشط'}</span></td>
+    <td><div class="row" style="gap:10px;justify-content:flex-end;">
+      <button class="icon-btn" onclick="openEmployeeModal('${e.id}')">✏️</button>
+      <button class="icon-btn" style="color:var(--danger)" onclick="deleteEmployee('${e.id}')">🗑️</button>
+    </div></td>
+  </tr>`).join('');
+}
+function renderEmpTable(){ document.getElementById('empTableBody').innerHTML = employeeRows(); }
+
+function openEmployeeModal(id){
+  const emp = id ? state.employees.find(e=>e.id===id) : {code:`EMP-${1000+state.employees.length+1}`, name:'', department:state.departments[0]||'', position:'', phone:'', email:'', fingerprintId:'', joinDate:todayISO(), status:'active'};
+  openModal(`
+    <div class="modal-head"><h3>${id?'تعديل بيانات الموظف':'إضافة موظف جديد'}</h3><button class="icon-btn" onclick="closeModal()">✖</button></div>
+    <div class="form-grid">
+      <label>الرقم الوظيفي<input id="f_code" value="${esc(emp.code)}"></label>
+      <label>الاسم الكامل *<input id="f_name" value="${esc(emp.name)}"></label>
+      <label>القسم<select id="f_department">${state.departments.map(d=>`<option value="${esc(d)}" ${emp.department===d?'selected':''}>${esc(d)}</option>`).join('')}</select></label>
+      <label>المنصب<input id="f_position" value="${esc(emp.position)}"></label>
+      <label>رقم الهاتف<input id="f_phone" value="${esc(emp.phone)}"></label>
+      <label>البريد الإلكتروني<input id="f_email" value="${esc(emp.email)}"></label>
+      <label>رقم البصمة (اختياري)<input id="f_fingerprintId" value="${esc(emp.fingerprintId)}"></label>
+      <label>تاريخ الالتحاق<input type="date" id="f_joinDate" value="${emp.joinDate}"></label>
+      <label>الحالة<select id="f_status"><option value="active" ${emp.status==='active'?'selected':''}>نشط</option><option value="inactive" ${emp.status==='inactive'?'selected':''}>غير نشط</option></select></label>
+    </div>
+    <div class="row" style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="saveEmployee(${id?`'${id}'`:'null'})">💾 حفظ</button>
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+function saveEmployee(id){
+  const name = document.getElementById('f_name').value.trim();
+  if(!name) return showToast('اسم الموظف مطلوب','err');
+  const data = {
+    code: document.getElementById('f_code').value.trim(),
+    name, department: document.getElementById('f_department').value,
+    position: document.getElementById('f_position').value,
+    phone: document.getElementById('f_phone').value,
+    email: document.getElementById('f_email').value,
+    fingerprintId: document.getElementById('f_fingerprintId').value,
+    joinDate: document.getElementById('f_joinDate').value,
+    status: document.getElementById('f_status').value,
+  };
+  if(id){
+    const idx = state.employees.findIndex(e=>e.id===id);
+    state.employees[idx] = {...data, id};
+    showToast('تم تحديث بيانات الموظف');
+  } else {
+    state.employees.push({...data, id:uid()});
+    showToast('تمت إضافة الموظف');
+  }
+  closeModal(); render();
+}
+function deleteEmployee(id){
+  const emp = state.employees.find(e=>e.id===id);
+  if(!confirm(`حذف الموظف "${emp.name}"؟`)) return;
+  state.employees = state.employees.filter(e=>e.id!==id);
+  showToast('تم حذف الموظف'); render();
+}
+function exportEmployeesExcel(){
+  const rows = state.employees.map(e=>({
+    'الرقم الوظيفي':e.code,'الاسم':e.name,'القسم':e.department,'المنصب':e.position,
+    'الهاتف':e.phone,'البريد الإلكتروني':e.email,'رقم البصمة':e.fingerprintId,
+    'تاريخ الالتحاق':e.joinDate,'الحالة': e.status==='active'?'نشط':'غير نشط',
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'الموظفون');
+  XLSX.writeFile(wb, `الموظفون-${todayISO()}.xlsx`);
+  showToast('تم تصدير ملف Excel');
+}
+function downloadEmployeeTemplate(){
+  const ws = XLSX.utils.json_to_sheet([{
+    'الرقم الوظيفي':'EMP-2001','الاسم':'اسم الموظف','القسم':state.departments[0]||'الإدارة',
+    'المنصب':'المسمى الوظيفي','الهاتف':'05xxxxxxxx','البريد الإلكتروني':'name@company.com',
+    'رقم البصمة':'FP-010','تاريخ الالتحاق':todayISO(),'الحالة':'نشط',
+  }]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'قالب الموظفين');
+  XLSX.writeFile(wb, 'قالب-استيراد-الموظفين.xlsx');
+}
+function importEmployeesExcel(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      const deptSet = new Set(state.departments);
+      const imported = rows.map((r,i)=>{
+        const dept = String(r['القسم']||r['department']||state.departments[0]||'عام').trim();
+        if(dept) deptSet.add(dept);
+        return {
+          id:uid(), code:String(r['الرقم الوظيفي']||r['code']||`EMP-${2000+i}`),
+          name:String(r['الاسم']||r['name']||'').trim(), department:dept,
+          position:String(r['المنصب']||r['position']||''), phone:String(r['الهاتف']||r['phone']||''),
+          email:String(r['البريد الإلكتروني']||r['email']||''), fingerprintId:String(r['رقم البصمة']||r['fingerprintId']||''),
+          joinDate:String(r['تاريخ الالتحاق']||r['joinDate']||todayISO()),
+          status: String(r['الحالة']||'نشط').includes('غير') ? 'inactive' : 'active',
+        };
+      }).filter(e=>e.name);
+      if(!imported.length) return showToast('لم يتم العثور على بيانات صالحة في الملف','err');
+      state.employees.push(...imported);
+      state.departments = Array.from(deptSet);
+      showToast(`تم استيراد ${imported.length} موظف من Excel`);
+      render();
+    }catch(err){ showToast('تعذر قراءة الملف — تأكد من الصيغة','err'); }
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ---------------------------------------------------------------------------
+// Attendance view
+// ---------------------------------------------------------------------------
+let attDate = todayISO(), attEmpFilter = '';
+function viewAttendance(){
+  return `
+    <div class="between">
+      <div><h1>الحضور والانصراف</h1><div class="sub">سجل يدوي كامل — مفيد عند تعطل جهاز البصمة</div></div>
+      <div class="row">
+        <input type="file" id="attFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importAttendanceExcel(this.files[0])" />
+        <button class="btn btn-ghost" onclick="document.getElementById('attFile').click()">⬆️ استيراد سجلات من Excel</button>
+        <button class="btn btn-ghost" onclick="exportAttendanceExcel()">📁 تصدير Excel</button>
+        <button class="btn btn-primary" onclick="openAttendanceModal()">➕ إدخال يدوي</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:16px;">
+      <input type="date" style="width:170px;" value="${attDate}" onchange="attDate=this.value; renderAttTable();" />
+      <select style="width:220px;" onchange="attEmpFilter=this.value; renderAttTable();">
+        <option value="">كل الموظفين</option>
+        ${state.employees.map(e=>`<option value="${e.id}" ${attEmpFilter===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}
+      </select>
+      ${attDate?`<button class="btn btn-ghost" onclick="attDate=''; renderAttTable(); document.querySelector('main input[type=date]').value='';">عرض كل التواريخ</button>`:''}
+    </div>
+    <div class="card" style="overflow-x:auto;"><table>
+      <thead><tr>${['التاريخ','الموظف','الحضور','الانصراف','ساعات العمل','الحالة','المصدر',''].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody id="attTableBody">${attendanceRows()}</tbody>
+    </table></div>
+  `;
+}
+function attendanceRows(){
+  const rows = state.attendance.filter(a => (!attDate || a.date===attDate) && (!attEmpFilter || a.employeeId===attEmpFilter))
+    .sort((a,b)=> (b.date+b.checkIn).localeCompare(a.date+a.checkIn));
+  if(!rows.length) return `<tr><td colspan="8" class="empty">لا توجد سجلات لهذا الاختيار</td></tr>`;
+  return rows.map(a=>{
+    const meta = STATUS_META[a.status] || {label:a.status, color:'var(--faint)'};
+    const src = a.source==='fingerprint'?'بصمة':a.source==='manual'?'يدوي':a.source;
+    return `<tr>
+      <td class="mono" style="color:var(--faint)">${a.date}</td>
+      <td style="font-weight:700">${esc(empName(a.employeeId))}</td>
+      <td class="mono">${a.checkIn||'—'}</td>
+      <td class="mono">${a.checkOut||'—'}</td>
+      <td class="mono" style="color:var(--muted)">${hoursBetween(a.checkIn,a.checkOut)||'—'}</td>
+      <td><span class="badge" style="background:${meta.color}22;color:${meta.color}"><span class="dot" style="background:${meta.color}"></span>${meta.label}</span></td>
+      <td style="font-size:11px;color:var(--faint)">${esc(src)}</td>
+      <td><div class="row" style="gap:10px;justify-content:flex-end;">
+        <button class="icon-btn" onclick="openAttendanceModal('${a.id}')">✏️</button>
+        <button class="icon-btn" style="color:var(--danger)" onclick="deleteAttendance('${a.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function renderAttTable(){ document.getElementById('attTableBody').innerHTML = attendanceRows(); }
+
+function openAttendanceModal(id){
+  const rec = id ? state.attendance.find(a=>a.id===id) : {employeeId:attEmpFilter||'', date:attDate||todayISO(), checkIn:'', checkOut:'', status:'present', note:''};
+  openModal(`
+    <div class="modal-head"><h3>${id?'تعديل سجل الحضور':'إدخال حضور يدويًا'}</h3><button class="icon-btn" onclick="closeModal()">✖</button></div>
+    <div class="form-grid">
+      <label>الموظف *<select id="a_employeeId"><option value="">اختر...</option>${state.employees.map(e=>`<option value="${e.id}" ${rec.employeeId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></label>
+      <label>التاريخ<input type="date" id="a_date" value="${rec.date}"></label>
+      <label>وقت الحضور<input type="time" id="a_checkIn" value="${rec.checkIn}"></label>
+      <label>وقت الانصراف<input type="time" id="a_checkOut" value="${rec.checkOut}"></label>
+      <label>الحالة (تُحسب تلقائيًا عند إدخال وقت الحضور)<select id="a_status">
+        <option value="present" ${rec.status==='present'?'selected':''}>حاضر</option>
+        <option value="late" ${rec.status==='late'?'selected':''}>متأخر</option>
+        <option value="absent" ${rec.status==='absent'?'selected':''}>غائب</option>
+        <option value="leave" ${rec.status==='leave'?'selected':''}>إجازة</option>
+      </select></label>
+      <label>ملاحظات<input id="a_note" value="${esc(rec.note||'')}"></label>
+    </div>
+    <div class="row" style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="saveAttendance(${id?`'${id}'`:'null'})">💾 حفظ</button>
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+function saveAttendance(id){
+  const employeeId = document.getElementById('a_employeeId').value;
+  if(!employeeId) return showToast('اختر الموظف','err');
+  const checkIn = document.getElementById('a_checkIn').value;
+  const checkOut = document.getElementById('a_checkOut').value;
+  let status = document.getElementById('a_status').value;
+  if(checkIn && status!=='leave') status = computeStatus(checkIn);
+  const data = {employeeId, date:document.getElementById('a_date').value, checkIn, checkOut, status, note:document.getElementById('a_note').value};
+  if(id){
+    const idx = state.attendance.findIndex(a=>a.id===id);
+    const prevSource = state.attendance[idx].source;
+    state.attendance[idx] = {...data, id, source: prevSource==='fingerprint' ? 'معدّل يدويًا' : prevSource};
+    showToast('تم تحديث السجل');
+  } else {
+    state.attendance.push({...data, id:uid(), source:'manual'});
+    showToast('تمت إضافة سجل الحضور يدويًا');
+  }
+  closeModal(); render();
+}
+function deleteAttendance(id){
+  if(!confirm('حذف هذا السجل؟')) return;
+  state.attendance = state.attendance.filter(a=>a.id!==id);
+  showToast('تم حذف السجل'); render();
+}
+function exportAttendanceExcel(){
+  const rows = state.attendance.filter(a => (!attDate || a.date===attDate) && (!attEmpFilter || a.employeeId===attEmpFilter))
+    .map(a=>({'التاريخ':a.date,'الموظف':empName(a.employeeId),'وقت الحضور':a.checkIn,'وقت الانصراف':a.checkOut,
+      'الحالة':(STATUS_META[a.status]||{}).label||a.status,'ساعات العمل':hoursBetween(a.checkIn,a.checkOut),
+      'المصدر':a.source==='fingerprint'?'بصمة':a.source==='manual'?'يدوي':a.source,'ملاحظات':a.note}));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'الحضور والانصراف');
+  XLSX.writeFile(wb, `تقرير-الحضور-${attDate||'الكل'}.xlsx`);
+  showToast('تم تصدير ملف Excel');
+}
+function importAttendanceExcel(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rowsIn = XLSX.utils.sheet_to_json(ws, {defval:''});
+      const byName = new Map(state.employees.map(e=>[e.name.trim(), e.id]));
+      const byCode = new Map(state.employees.map(e=>[e.code.trim(), e.id]));
+      let count = 0; const newRecs = [];
+      rowsIn.forEach(r=>{
+        const key = String(r['الموظف']||r['الاسم']||r['الرقم الوظيفي']||r['employee']||'').trim();
+        const empId = byCode.get(key) || byName.get(key);
+        const d = String(r['التاريخ']||r['date']||todayISO());
+        if(!empId || !d) return;
+        const checkIn = String(r['وقت الحضور']||r['checkIn']||'');
+        const checkOut = String(r['وقت الانصراف']||r['checkOut']||'');
+        const status = checkIn ? computeStatus(checkIn) : 'absent';
+        newRecs.push({id:uid(), employeeId:empId, date:d, checkIn, checkOut, status, note:String(r['ملاحظات']||''), source:'استيراد Excel'});
+        count++;
+      });
+      if(!count) return showToast('لم يتم التعرف على أي سجلات — تأكد من أعمدة الملف','err');
+      state.attendance.push(...newRecs);
+      showToast(`تم استيراد ${count} سجل حضور من Excel`);
+      render();
+    }catch(err){ showToast('تعذر قراءة الملف','err'); }
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ---------------------------------------------------------------------------
+// Reports view
+// ---------------------------------------------------------------------------
+let repFrom = (()=>{const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10);})();
+let repTo = todayISO();
+function viewReports(){
+  return `
+    <div class="between">
+      <div><h1>التقارير</h1><div class="sub">ملخص أداء الحضور لكل موظف خلال فترة محددة</div></div>
+      <button class="btn btn-primary" onclick="exportReportExcel()">📁 تصدير التقرير Excel</button>
+    </div>
+    <div class="row" style="margin-bottom:16px;">
+      <label style="width:170px;">من تاريخ<input type="date" value="${repFrom}" onchange="repFrom=this.value; renderRepTable();"></label>
+      <label style="width:170px;">إلى تاريخ<input type="date" value="${repTo}" onchange="repTo=this.value; renderRepTable();"></label>
+    </div>
+    <div class="card" style="overflow-x:auto;"><table>
+      <thead><tr>${['الموظف','القسم','أيام الحضور','أيام التأخير','أيام الإجازة','إجمالي الساعات'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody id="repTableBody">${reportRows()}</tbody>
+    </table></div>
+  `;
+}
+function reportSummary(){
+  return state.employees.map(e=>{
+    const recs = state.attendance.filter(a=>a.employeeId===e.id && a.date>=repFrom && a.date<=repTo);
+    const present = recs.filter(a=>a.status==='present').length;
+    const late = recs.filter(a=>a.status==='late').length;
+    const leave = recs.filter(a=>a.status==='leave').length;
+    const hours = recs.reduce((s,a)=>s+hoursBetween(a.checkIn,a.checkOut),0);
+    return {name:e.name, department:e.department, present, late, leave, hours:+hours.toFixed(1)};
+  });
+}
+function reportRows(){
+  return reportSummary().map(s=>`<tr>
+    <td style="font-weight:700">${esc(s.name)}</td>
+    <td style="color:var(--muted)">${esc(s.department)}</td>
+    <td class="mono" style="color:var(--primary)">${s.present}</td>
+    <td class="mono" style="color:var(--amber)">${s.late}</td>
+    <td class="mono" style="color:var(--violet)">${s.leave}</td>
+    <td class="mono">${s.hours}</td>
+  </tr>`).join('');
+}
+function renderRepTable(){ document.getElementById('repTableBody').innerHTML = reportRows(); }
+function exportReportExcel(){
+  const rows = reportSummary().map(s=>({'الموظف':s.name,'القسم':s.department,'أيام الحضور':s.present,'أيام التأخير':s.late,'أيام الإجازة':s.leave,'إجمالي ساعات العمل':s.hours}));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'تقرير ملخص');
+  XLSX.writeFile(wb, `تقرير-ملخص-${repFrom}-إلى-${repTo}.xlsx`);
+  showToast('تم تصدير التقرير إلى Excel');
+}
+
+// ---------------------------------------------------------------------------
+// Settings view
+// ---------------------------------------------------------------------------
+function viewSettings(){
+  const s = state.settings;
+  return `
+    <div style="margin-bottom:20px;"><h1>الإعدادات</h1><div class="sub">ضبط سياسة الدوام والأقسام</div></div>
+    <div class="card pad" style="max-width:640px;margin-bottom:16px;">
+      <b style="font-size:14px;">بيانات الشركة وسياسة الدوام</b>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:14px;">
+        <label>اسم الشركة<input id="s_companyName" value="${esc(s.companyName)}"></label>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <label>بداية الدوام<input type="time" id="s_workStart" value="${s.workStart}"></label>
+          <label>نهاية الدوام<input type="time" id="s_workEnd" value="${s.workEnd}"></label>
+          <label>فترة السماح (دقيقة)<input type="number" id="s_graceMinutes" value="${s.graceMinutes}"></label>
+        </div>
+        <div><button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button></div>
+      </div>
+    </div>
+    <div class="card pad" style="max-width:640px;margin-bottom:16px;">
+      <b style="font-size:14px;">🏢 الأقسام</b>
+      <div class="row" style="margin-top:14px;margin-bottom:14px;" id="deptChips">${deptChips()}</div>
+      <div class="row">
+        <input id="newDeptInput" placeholder="اسم قسم جديد" style="flex:1;">
+        <button class="btn btn-primary" onclick="addDept()">➕ إضافة</button>
+      </div>
+    </div>
+    <div class="card pad" style="max-width:640px;margin-bottom:16px;">
+      <div class="row" style="margin-bottom:6px;">
+        <b style="font-size:14px;">🗄️ النسخ الاحتياطي والاستعادة</b>
+        <span class="badge" style="margin-right:auto;background:${storageAvailable?'rgba(0,217,192,.15)':'rgba(255,176,32,.15)'};color:${storageAvailable?'var(--primary)':'var(--amber)'}">
+          <span class="dot" style="background:${storageAvailable?'var(--primary)':'var(--amber)'}"></span>
+          ${storageAvailable?'الحفظ التلقائي مفعّل':'الحفظ التلقائي غير متاح هنا'}
+        </span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.8;margin:6px 0 14px;">
+        نزّل نسخة احتياطية كاملة (الموظفون، الحضور، الأقسام، الإعدادات) بصيغة ملف JSON بأي وقت، واستخدمها للاستعادة لاحقًا أو لنقل البيانات لجهاز آخر. يُنصح بأخذ نسخة احتياطية بشكل دوري خصوصًا إذا كان الحفظ التلقائي غير متاح.
+      </p>
+      <div class="row">
+        <input type="file" id="backupFile" accept=".json" style="display:none" onchange="backupImport(this.files[0])" />
+        <button class="btn btn-primary" onclick="backupExport()">⬇️ تنزيل نسخة احتياطية</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('backupFile').click()">⬆️ استعادة من نسخة احتياطية</button>
+      </div>
+    </div>
+    <div class="note-box" style="max-width:640px;">
+      <span>ℹ️</span>
+      <span>ملاحظة: المتصفح لا يستطيع الاتصال مباشرة بجهاز بصمة فعلي لأسباب أمنية. الحل العملي هو تصدير بيانات الجهاز (يدعم أغلب الأجهزة التصدير إلى Excel/CSV) ثم استيرادها من صفحة "الحضور والانصراف"، أو استخدام "التسجيل السريع" و"الإدخال اليدوي" كبديل كامل عند تعطل الجهاز.</span>
+    </div>
+  `;
+}
+function backupExport(){
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    employees: state.employees, attendance: state.attendance,
+    departments: state.departments, settings: state.settings,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `نسخة-احتياطية-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('تم تنزيل النسخة الاحتياطية');
+}
+function backupImport(file){
+  if(!file) return;
+  if(!confirm('استعادة هذه النسخة ستستبدل كل البيانات الحالية (الموظفون والحضور والأقسام). هل تريد المتابعة؟')) { document.getElementById('backupFile').value=''; return; }
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const data = JSON.parse(evt.target.result);
+      if(!Array.isArray(data.employees) || !Array.isArray(data.attendance)) throw new Error('صيغة غير صالحة');
+      state.employees = data.employees;
+      state.attendance = data.attendance;
+      state.departments = data.departments && data.departments.length ? data.departments : SEED_DEPARTMENTS;
+      state.settings = data.settings || DEFAULT_SETTINGS;
+      showToast('تمت استعادة النسخة الاحتياطية بنجاح');
+      render();
+    }catch(err){ showToast('الملف غير صالح كنسخة احتياطية لهذا النظام','err'); }
+  };
+  reader.readAsText(file);
+}
+function deptChips(){
+  return state.departments.map(d=>`<span class="chip">${esc(d)} <button class="icon-btn" style="color:var(--danger);font-size:12px;" onclick="removeDept('${esc(d)}')">✖</button></span>`).join('');
+}
+function saveSettings(){
+  state.settings = {
+    companyName: document.getElementById('s_companyName').value || 'شركتي',
+    workStart: document.getElementById('s_workStart').value,
+    workEnd: document.getElementById('s_workEnd').value,
+    graceMinutes: Number(document.getElementById('s_graceMinutes').value)||0,
+  };
+  showToast('تم حفظ الإعدادات'); render();
+}
+function addDept(){
+  const v = document.getElementById('newDeptInput').value.trim();
+  if(!v) return;
+  if(state.departments.includes(v)) return showToast('القسم موجود بالفعل','err');
+  state.departments.push(v);
+  document.getElementById('newDeptInput').value='';
+  document.getElementById('deptChips').innerHTML = deptChips();
+  persist();
+}
+function removeDept(d){
+  const inUse = state.employees.some(e=>e.department===d);
+  if(inUse) return showToast('لا يمكن حذف قسم مرتبط بموظفين','err');
+  state.departments = state.departments.filter(x=>x!==d);
+  document.getElementById('deptChips').innerHTML = deptChips();
+  persist();
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+(async function init(){
+  await loadState();
+  render();
+  setInterval(tickClock, 30000);
+  tickClock();
+})();
+</script>
+</body>
+</html>
